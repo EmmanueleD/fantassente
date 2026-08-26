@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useWebHaptics } from "web-haptics/react";
 
 interface SetupTabsProps {
   strategyContent: ReactNode;
@@ -15,12 +14,8 @@ export default function SetupTabs({ strategyContent, teamContent }: SetupTabsPro
   const [justRefreshed, setJustRefreshed] = useState(false);
   const hasPendingRefreshRef = useRef(false);
   const router = useRouter();
-  const { trigger } = useWebHaptics();
 
   function handleRefresh() {
-    // Immediate tap feedback on supported mobile browsers — no-ops silently
-    // where the Vibration API isn't available (desktop, iOS Safari).
-    void trigger("nudge");
     hasPendingRefreshRef.current = true;
     startTransition(() => {
       router.refresh();
@@ -32,12 +27,11 @@ export default function SetupTabs({ strategyContent, teamContent }: SetupTabsPro
   useEffect(() => {
     if (!isPending && hasPendingRefreshRef.current) {
       hasPendingRefreshRef.current = false;
-      void trigger("success");
       setJustRefreshed(true);
       const timeout = setTimeout(() => setJustRefreshed(false), 1500);
       return () => clearTimeout(timeout);
     }
-  }, [isPending, trigger]);
+  }, [isPending]);
 
   return (
     <div>
