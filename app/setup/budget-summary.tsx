@@ -1,15 +1,15 @@
 export default function BudgetSummary({
   initialBudget,
-  remainingBudget,
+  projectedRemainingBudget,
 }: {
   initialBudget: number;
-  remainingBudget: number;
+  projectedRemainingBudget: number;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
-      <span className="text-slate-400">Budget</span>
+    <div className="flex flex-col gap-1 rounded-xl border border-slate-700 bg-slate-800 p-4">
+      <span className="text-slate-400">Budget stimato (priorità 1 per slot vuoti)</span>
       <span className="text-2xl font-bold">
-        {remainingBudget} / {initialBudget}
+        {projectedRemainingBudget} / {initialBudget}
       </span>
     </div>
   );

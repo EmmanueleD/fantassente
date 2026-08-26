@@ -1,6 +1,6 @@
 import "server-only";
 import { getSupabaseServerClient } from "../supabase/server-client";
-import type { SlotCode } from "../slots";
+import { SLOT_CODES, type SlotCode } from "../slots";
 
 export interface CandidateSetupRow {
   id: number;
@@ -21,8 +21,15 @@ interface CandidateDbRow {
 export interface SetupData {
   candidates: CandidateSetupRow[];
   initialBudget: number;
-  remainingBudget: number;
+  /** Planning projection: sum over all 25 slots of (actual price if filled, else priority-1 candidate's max_price, else 0), subtracted from initialBudget. */
+  projectedRemainingBudget: number;
   filledSlots: SlotCode[];
+  /** Real spend to date, from actual purchases only. */
+  actualSpent: number;
+  /** initialBudget - actualSpent. */
+  actualRemainingBudget: number;
+  /** Real purchase rows, most-recent-first. */
+  purchases: { slot: SlotCode; playerName: string; finalPrice: number }[];
 }
 
 /** Result of a write operation. `error` is a short machine-readable code, not user-facing copy. */
@@ -34,7 +41,7 @@ export async function getSetupData(): Promise<SetupData> {
   const [candidatesRes, configRes, purchasesRes] = await Promise.all([
     client.from("candidates").select("id, slot, player_name, max_price, priority"),
     client.from("app_config").select("initial_budget").eq("id", true).single(),
-    client.from("purchases").select("slot, final_price"),
+    client.from("purchases").select("slot, player_name, final_price").order("purchased_at", { ascending: false }),
   ]);
 
   if (candidatesRes.error) {
@@ -56,15 +63,45 @@ export async function getSetupData(): Promise<SetupData> {
   }));
 
   const config = configRes.data as { initial_budget: number };
-  const purchases = purchasesRes.data as { slot: SlotCode; final_price: number }[];
-  const filledSlots = purchases.map((row) => row.slot);
-  const spent = purchases.reduce((sum, row) => sum + row.final_price, 0);
+  const purchasesRows = purchasesRes.data as { slot: SlotCode; player_name: string; final_price: number }[];
+  const filledSlots = purchasesRows.map((row) => row.slot);
+  const actualSpent = purchasesRows.reduce((sum, row) => sum + row.final_price, 0);
+  const purchases = purchasesRows.map((row) => ({
+    slot: row.slot,
+    playerName: row.player_name,
+    finalPrice: row.final_price,
+  }));
+
+  const purchaseFinalPriceBySlot = new Map(purchasesRows.map((row) => [row.slot, row.final_price]));
+  const candidatesBySlot = new Map<SlotCode, CandidateSetupRow[]>();
+  for (const candidate of candidates) {
+    const list = candidatesBySlot.get(candidate.slot) ?? [];
+    list.push(candidate);
+    candidatesBySlot.set(candidate.slot, list);
+  }
+
+  let projectedSpend = 0;
+  for (const slot of SLOT_CODES) {
+    const actualPrice = purchaseFinalPriceBySlot.get(slot);
+    if (actualPrice !== undefined) {
+      projectedSpend += actualPrice;
+      continue;
+    }
+    const slotCandidates = candidatesBySlot.get(slot);
+    if (slotCandidates && slotCandidates.length > 0) {
+      const topChoice = slotCandidates.reduce((min, c) => (c.priority < min.priority ? c : min));
+      projectedSpend += topChoice.maxPrice;
+    }
+  }
 
   return {
     candidates,
     initialBudget: config.initial_budget,
-    remainingBudget: config.initial_budget - spent,
+    projectedRemainingBudget: config.initial_budget - projectedSpend,
     filledSlots,
+    actualSpent,
+    actualRemainingBudget: config.initial_budget - actualSpent,
+    purchases,
   };
 }
 

@@ -4,7 +4,10 @@ import { getSetupData } from "@/lib/setup/setup-service";
 import { SLOT_CODES, roleGroupOf, type SlotCode, type RoleGroup } from "@/lib/slots";
 import SlotEditor from "./slot-editor";
 import BudgetSummary from "./budget-summary";
+import SetupTabs from "./setup-tabs";
 import LogoutButton from "../logout-button";
+import RosterSidebar, { type RosterPurchase } from "@/app/auction/roster-sidebar";
+import PurchaseHistory, { type PurchaseHistoryRow } from "@/app/auction/purchase-history";
 
 const GROUP_LABELS: Record<RoleGroup, string> = {
   P: "Portieri",
@@ -23,13 +26,9 @@ export default async function SetupPage() {
     groups[roleGroupOf(slot)].push(slot);
   }
 
-  return (
-    <main className="min-h-screen bg-slate-900 p-6 text-white">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Setup strategia — Miglio</h1>
-        <LogoutButton />
-      </div>
-      <BudgetSummary initialBudget={data.initialBudget} remainingBudget={data.remainingBudget} />
+  const strategyContent = (
+    <>
+      <BudgetSummary initialBudget={data.initialBudget} projectedRemainingBudget={data.projectedRemainingBudget} />
       <div className="mt-8 flex flex-col gap-8">
         {Object.entries(groups).map(([group, slots]) => (
           <section key={group}>
@@ -49,6 +48,43 @@ export default async function SetupPage() {
           </section>
         ))}
       </div>
+    </>
+  );
+
+  const rosterPurchases: RosterPurchase[] = data.purchases.map((row) => ({
+    slot: row.slot,
+    playerName: row.playerName,
+    finalPrice: row.finalPrice,
+  }));
+  const historyRows: PurchaseHistoryRow[] = data.purchases.map((row) => ({
+    playerName: row.playerName,
+    slot: row.slot,
+    finalPrice: row.finalPrice,
+  }));
+
+  const teamContent = (
+    <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="lg:w-96">
+        <RosterSidebar
+          purchases={rosterPurchases}
+          initialBudget={data.initialBudget}
+          spent={data.actualSpent}
+          remaining={data.actualRemainingBudget}
+        />
+      </div>
+      <div className="flex-1">
+        <PurchaseHistory rows={historyRows} />
+      </div>
+    </div>
+  );
+
+  return (
+    <main className="min-h-screen bg-slate-900 p-6 text-white">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Setup strategia — Miglio</h1>
+        <LogoutButton />
+      </div>
+      <SetupTabs strategyContent={strategyContent} teamContent={teamContent} />
     </main>
   );
 }
