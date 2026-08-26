@@ -1,2 +1,19 @@
 # Local Pi runtime state
 .atl/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Misc
+*.log
+.DS_Store
+*.tsbuildinfo
