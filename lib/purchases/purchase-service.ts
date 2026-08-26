@@ -6,7 +6,8 @@ import { TOTAL_SLOTS, type SlotCode } from "../slots";
 export type PurchaseResult =
   | { ok: true; remainingBudget: number }
   | { ok: false; error: "SLOT_FILLED" }
-  | { ok: false; error: "PRICE_EXCEEDS_BUDGET"; maxAffordable: number };
+  | { ok: false; error: "PRICE_EXCEEDS_BUDGET"; maxAffordable: number }
+  | { ok: false; error: "PURCHASE_NOT_FOUND" };
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -63,4 +64,80 @@ export async function assignPurchase(
   }
 
   return { ok: true, remainingBudget: remaining - finalPrice };
+}
+
+/**
+ * Edit logic for an existing assignment (Jabu-only). Excludes the slot's own
+ * current price from the spent total since it stays filled before and after
+ * the edit — it was never an "open" slot, so no -1 reservation adjustment
+ * like assignPurchase's fresh-assignment case.
+ */
+export async function updatePurchase(
+  slot: SlotCode,
+  playerName: string,
+  finalPrice: number
+): Promise<PurchaseResult> {
+  const client = getSupabaseServerClient();
+
+  const [purchasesRes, configRes] = await Promise.all([
+    client.from("purchases").select("slot, final_price"),
+    client.from("app_config").select("initial_budget").eq("id", true).single(),
+  ]);
+
+  if (purchasesRes.error) {
+    throw purchasesRes.error;
+  }
+  if (configRes.error) {
+    throw configRes.error;
+  }
+
+  const purchases = purchasesRes.data as { slot: SlotCode; final_price: number }[];
+  const initialBudget = (configRes.data as { initial_budget: number }).initial_budget;
+
+  if (!purchases.some((row) => row.slot === slot)) {
+    return { ok: false, error: "PURCHASE_NOT_FOUND" };
+  }
+
+  const otherPurchases = purchases.filter((row) => row.slot !== slot);
+  const remaining =
+    initialBudget - otherPurchases.reduce((sum, row) => sum + row.final_price, 0);
+  const reserved = TOTAL_SLOTS - purchases.length;
+  const maxAffordable = remaining - reserved;
+
+  if (finalPrice > maxAffordable) {
+    return { ok: false, error: "PRICE_EXCEEDS_BUDGET", maxAffordable };
+  }
+
+  const { error } = await client
+    .from("purchases")
+    .update({ player_name: playerName, final_price: finalPrice })
+    .eq("slot", slot);
+
+  if (error) {
+    throw error;
+  }
+
+  return { ok: true, remainingBudget: remaining - finalPrice };
+}
+
+/**
+ * Delete logic for an existing assignment (Jabu-only). Freeing a slot never
+ * decreases available budget, so no budget check is needed.
+ */
+export async function deletePurchase(
+  slot: SlotCode
+): Promise<{ ok: true } | { ok: false; error: "PURCHASE_NOT_FOUND" }> {
+  const client = getSupabaseServerClient();
+
+  const { data, error } = await client.from("purchases").delete().eq("slot", slot).select();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    return { ok: false, error: "PURCHASE_NOT_FOUND" };
+  }
+
+  return { ok: true };
 }

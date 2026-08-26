@@ -5,7 +5,7 @@ import { normalizeName } from "@/lib/normalize";
 import { SLOT_CODES, roleGroupOf, type RoleGroup, type SlotCode } from "@/lib/slots";
 import AuctionConsole, { type AutocompleteEntry } from "./auction-console";
 import RosterSidebar, { type RosterPurchase } from "./roster-sidebar";
-import PurchaseHistory, { type PurchaseHistoryRow } from "./purchase-history";
+import PurchaseManager, { type ManagedPurchase } from "./purchase-manager";
 import LogoutButton from "../logout-button";
 
 interface CandidateDbRow {
@@ -83,7 +83,7 @@ export default async function AuctionPage() {
     finalPrice: row.final_price,
   }));
 
-  const historyRows: PurchaseHistoryRow[] = purchases.map((row) => ({
+  const historyRows: ManagedPurchase[] = purchases.map((row) => ({
     playerName: row.player_name,
     slot: row.slot,
     finalPrice: row.final_price,
@@ -107,7 +107,7 @@ export default async function AuctionPage() {
           spent={spent}
           remaining={remaining}
         />
-        <PurchaseHistory rows={historyRows} />
+        <PurchaseManager rows={historyRows} />
       </aside>
     </main>
   );
