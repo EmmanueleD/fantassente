@@ -6,6 +6,7 @@ import { roleGroupOf, type RoleGroup, type SlotCode } from "@/lib/slots";
 import AuctionConsole, { type AutocompleteEntry } from "./auction-console";
 import RosterSidebar, { type RosterPurchase } from "./roster-sidebar";
 import PurchaseHistory, { type PurchaseHistoryRow } from "./purchase-history";
+import LogoutButton from "../logout-button";
 
 interface CandidateDbRow {
   slot: SlotCode;
@@ -93,6 +94,9 @@ export default async function AuctionPage() {
   return (
     <main className="grid min-h-screen grid-cols-1 gap-6 bg-slate-900 p-6 text-white lg:grid-cols-[1fr_360px]">
       <section className="flex flex-col gap-6">
+        <div className="flex items-center justify-end">
+          <LogoutButton />
+        </div>
         {!config.strategy_locked && (
           <div className="rounded-lg bg-amber-500 px-4 py-2 font-bold text-slate-900">
             STRATEGIA NON BLOCCATA

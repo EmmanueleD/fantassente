@@ -4,6 +4,7 @@ import { getSetupData } from "@/lib/setup/setup-service";
 import { SLOT_CODES, roleGroupOf, type SlotCode, type RoleGroup } from "@/lib/slots";
 import SlotEditor from "./slot-editor";
 import BudgetLockPanel from "./budget-lock-panel";
+import LogoutButton from "../logout-button";
 
 const GROUP_LABELS: Record<RoleGroup, string> = {
   P: "Portieri",
@@ -24,7 +25,10 @@ export default async function SetupPage() {
 
   return (
     <main className="min-h-screen bg-slate-900 p-6 text-white">
-      <h1 className="mb-6 text-3xl font-bold">Setup strategia — Miglio</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Setup strategia — Miglio</h1>
+        <LogoutButton />
+      </div>
       <BudgetLockPanel initialBudget={data.initialBudget} strategyLocked={data.strategyLocked} />
       <div className="mt-8 flex flex-col gap-8">
         {Object.entries(groups).map(([group, slots]) => (

@@ -98,6 +98,7 @@ export default function SlotEditor({ slot, filled, strategyLocked, candidates }:
       <h3 className="mb-2 font-bold">
         {slot} {filled && <span className="ml-2 text-xs text-amber-400">OCCUPATO</span>}
       </h3>
+      <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-slate-400">
@@ -154,7 +155,8 @@ export default function SlotEditor({ slot, filled, strategyLocked, candidates }:
           ))}
         </tbody>
       </table>
-      <div className="mt-3 flex gap-2">
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
         <input
           placeholder="Giocatore"
           value={name}

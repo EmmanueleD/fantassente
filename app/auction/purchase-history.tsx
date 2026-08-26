@@ -17,6 +17,7 @@ export default function PurchaseHistory({ rows }: PurchaseHistoryProps) {
       {rows.length === 0 ? (
         <p className="text-sm text-slate-500">Nessun acquisto ancora.</p>
       ) : (
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-slate-400">
@@ -35,6 +36,7 @@ export default function PurchaseHistory({ rows }: PurchaseHistoryProps) {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
