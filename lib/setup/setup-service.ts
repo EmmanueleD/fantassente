@@ -1,6 +1,6 @@
 import "server-only";
 import { getSupabaseServerClient } from "../supabase/server-client";
-import { SLOT_CODES, type SlotCode } from "../slots";
+import type { SlotCode } from "../slots";
 
 export interface CandidateSetupRow {
   id: number;
@@ -21,8 +21,6 @@ interface CandidateDbRow {
 export interface SetupData {
   candidates: CandidateSetupRow[];
   initialBudget: number;
-  /** Planning projection: sum over all 25 slots of (actual price if filled, else priority-1 candidate's max_price, else 0), subtracted from initialBudget. */
-  projectedRemainingBudget: number;
   filledSlots: SlotCode[];
   /** Real spend to date, from actual purchases only. */
   actualSpent: number;
@@ -72,32 +70,9 @@ export async function getSetupData(): Promise<SetupData> {
     finalPrice: row.final_price,
   }));
 
-  const purchaseFinalPriceBySlot = new Map(purchasesRows.map((row) => [row.slot, row.final_price]));
-  const candidatesBySlot = new Map<SlotCode, CandidateSetupRow[]>();
-  for (const candidate of candidates) {
-    const list = candidatesBySlot.get(candidate.slot) ?? [];
-    list.push(candidate);
-    candidatesBySlot.set(candidate.slot, list);
-  }
-
-  let projectedSpend = 0;
-  for (const slot of SLOT_CODES) {
-    const actualPrice = purchaseFinalPriceBySlot.get(slot);
-    if (actualPrice !== undefined) {
-      projectedSpend += actualPrice;
-      continue;
-    }
-    const slotCandidates = candidatesBySlot.get(slot);
-    if (slotCandidates && slotCandidates.length > 0) {
-      const topChoice = slotCandidates.reduce((min, c) => (c.priority < min.priority ? c : min));
-      projectedSpend += topChoice.maxPrice;
-    }
-  }
-
   return {
     candidates,
     initialBudget: config.initial_budget,
-    projectedRemainingBudget: config.initial_budget - projectedSpend,
     filledSlots,
     actualSpent,
     actualRemainingBudget: config.initial_budget - actualSpent,

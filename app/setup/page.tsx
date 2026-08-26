@@ -3,7 +3,6 @@ import { requireRole } from "@/lib/auth/guard";
 import { getSetupData } from "@/lib/setup/setup-service";
 import { SLOT_CODES, roleGroupOf, type SlotCode, type RoleGroup } from "@/lib/slots";
 import SlotEditor from "./slot-editor";
-import BudgetSummary from "./budget-summary";
 import SetupTabs from "./setup-tabs";
 import LogoutButton from "../logout-button";
 import RosterSidebar, { type RosterPurchase } from "@/app/auction/roster-sidebar";
@@ -28,8 +27,7 @@ export default async function SetupPage() {
 
   const strategyContent = (
     <>
-      <BudgetSummary initialBudget={data.initialBudget} projectedRemainingBudget={data.projectedRemainingBudget} />
-      <div className="mt-8 flex flex-col gap-8">
+      <div className="flex flex-col gap-8">
         {Object.entries(groups).map(([group, slots]) => (
           <section key={group}>
             <h2 className="mb-3 text-xl font-semibold">{GROUP_LABELS[group as RoleGroup]}</h2>
