@@ -27,10 +27,15 @@ create table if not exists public.purchases (
 create table if not exists public.app_config (
   id              boolean primary key default true check (id),
   initial_budget  integer not null default 500 check (initial_budget >= 1),
-  strategy_locked boolean not null default false,
   updated_at      timestamptz not null default now()
 );
 insert into public.app_config (id) values (true) on conflict (id) do nothing;
+
+-- Migration for already-deployed databases: the strategy lock feature was
+-- removed; drop the now-unused column before RLS/grants run below, so a
+-- re-run against a live DB doesn't try to grant a column being dropped in
+-- the same script.
+alter table if exists public.app_config drop column if exists strategy_locked;
 
 -- ---------- layer 1: RLS (no permissive policies at all) ----------
 alter table public.candidates enable row level security;
@@ -46,5 +51,5 @@ revoke all on public.candidates, public.purchases, public.app_config
 -- Mirrors exactly the client-visible field set of spec §7 / §2.2.
 grant select (slot, player_name)                on public.candidates to anon, authenticated;
 grant select (slot, player_name, final_price)   on public.purchases  to anon, authenticated;
-grant select (initial_budget, strategy_locked)  on public.app_config to anon, authenticated;
+grant select (initial_budget) on public.app_config to anon, authenticated;
 -- max_price and priority are grantable to NO role except service_role/owner.

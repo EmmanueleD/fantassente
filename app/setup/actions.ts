@@ -64,33 +64,3 @@ export async function reorderCandidatesAction(slot: string, orderedIds: number[]
   }
   return result;
 }
-
-export async function setInitialBudgetAction(initialBudget: number): Promise<WriteResult> {
-  await requireRole(ROLE.MIGLIO);
-  if (!isPositiveInteger(initialBudget)) {
-    return { ok: false, error: "INVALID_INPUT" };
-  }
-  const result = await setupService.setInitialBudget(initialBudget);
-  if (result.ok) {
-    revalidatePath("/setup");
-  }
-  return result;
-}
-
-export async function lockStrategyAction(): Promise<WriteResult> {
-  await requireRole(ROLE.MIGLIO);
-  const result = await setupService.lockStrategy();
-  if (result.ok) {
-    revalidatePath("/setup");
-  }
-  return result;
-}
-
-export async function unlockStrategyAction(): Promise<WriteResult> {
-  await requireRole(ROLE.MIGLIO);
-  const result = await setupService.unlockStrategy();
-  if (result.ok) {
-    revalidatePath("/setup");
-  }
-  return result;
-}

@@ -14,6 +14,7 @@ export interface AutocompleteEntry {
 
 interface AuctionConsoleProps {
   autocompleteIndex: AutocompleteEntry[];
+  openSlots: SlotCode[];
 }
 
 interface Verdict {
@@ -43,7 +44,7 @@ function verdictLabel(verdict: Verdict): string {
   }
 }
 
-export default function AuctionConsole({ autocompleteIndex }: AuctionConsoleProps) {
+export default function AuctionConsole({ autocompleteIndex, openSlots }: AuctionConsoleProps) {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const bidInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +61,62 @@ export default function AuctionConsole({ autocompleteIndex }: AuctionConsoleProp
   const [assignSlot, setAssignSlot] = useState<SlotCode | "">("");
   const [assignError, setAssignError] = useState<string | null>(null);
   const [assigning, setAssigning] = useState(false);
+
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualName, setManualName] = useState("");
+  const [manualSlot, setManualSlot] = useState<SlotCode | "">("");
+  const [manualPrice, setManualPrice] = useState("");
+  const [manualError, setManualError] = useState<string | null>(null);
+  const [manualSubmitting, setManualSubmitting] = useState(false);
+
+  function resetManualPanel() {
+    setManualOpen(false);
+    setManualName("");
+    setManualSlot("");
+    setManualPrice("");
+    setManualError(null);
+  }
+
+  async function handleManualAssign() {
+    const trimmedName = manualName.trim();
+    if (trimmedName === "" || manualSlot === "") {
+      return;
+    }
+    const finalPrice = Number(manualPrice);
+    if (!Number.isInteger(finalPrice) || finalPrice <= 0) {
+      return;
+    }
+    setManualSubmitting(true);
+    setManualError(null);
+    try {
+      const response = await fetch("/api/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slot: manualSlot,
+          playerName: trimmedName,
+          finalPrice,
+        }),
+      });
+      if (response.ok) {
+        router.refresh();
+        resetManualPanel();
+        return;
+      }
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string; maxAffordable?: number }
+        | null;
+      if (body?.error === "SLOT_FILLED") {
+        setManualError("SLOT GIÀ OCCUPATO");
+      } else if (body?.error === "PRICE_EXCEEDS_BUDGET") {
+        setManualError(`PREZZO OLTRE IL BUDGET DISPONIBILE (max ${body.maxAffordable})`);
+      } else {
+        setManualError("ERRORE NELL'ASSEGNAZIONE");
+      }
+    } finally {
+      setManualSubmitting(false);
+    }
+  }
 
   const matches = useMemo(() => {
     const target = normalizeName(query);
@@ -207,6 +264,57 @@ export default function AuctionConsole({ autocompleteIndex }: AuctionConsoleProp
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="rounded-lg border border-slate-700 p-3">
+        <button
+          type="button"
+          onClick={() => (manualOpen ? resetManualPanel() : setManualOpen(true))}
+          className="text-sm font-bold text-slate-300"
+        >
+          {manualOpen ? "chiudi assegnazione manuale" : "Assegnazione manuale"}
+        </button>
+        {manualOpen && (
+          <div className="mt-3 flex flex-col gap-2">
+            <input
+              value={manualName}
+              onChange={(event) => setManualName(event.target.value)}
+              placeholder="Nome giocatore"
+              className="rounded bg-slate-700 px-3 py-2 outline-none"
+            />
+            <select
+              value={manualSlot}
+              onChange={(event) => setManualSlot(event.target.value as SlotCode | "")}
+              className="rounded bg-slate-700 px-3 py-2 outline-none"
+            >
+              <option value="">Slot...</option>
+              {openSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={manualPrice}
+              onChange={(event) => setManualPrice(event.target.value)}
+              placeholder="Prezzo finale"
+              className="rounded bg-slate-700 px-3 py-2 outline-none"
+            />
+            <button
+              type="button"
+              disabled={
+                manualSubmitting || manualName.trim() === "" || manualSlot === "" || manualPrice === ""
+              }
+              onClick={() => void handleManualAssign()}
+              className="rounded bg-green-600 px-4 py-2 font-bold disabled:opacity-40"
+            >
+              ASSEGNA MANUALMENTE
+            </button>
+            {manualError && <p className="text-sm font-bold text-red-400">{manualError}</p>}
+          </div>
+        )}
+      </div>
+
       {!selected && (
         <div className="relative">
           <input

@@ -74,25 +74,6 @@ this project — no browser-side Supabase client exists.
 4. Deploy. On first request, `/` redirects by role cookie: `miglio` → `/setup`,
    `jabu` → `/auction`, no session → `/login`.
 
-## Escape hatch: unlocking the strategy
-
-The strategy lock (`app_config.strategy_locked`) is no longer one-way: when the
-strategy is locked, `/setup` shows a "SBLOCCA STRATEGIA" button (Miglio-role
-gated, same server-side enforcement as every other `/setup` write action) that
-unlocks it again. The intended workflow is unlock → edit candidates/budget →
-lock again when done, all through the UI.
-
-As a fallback for when the app itself is unreachable (e.g. deploy is down),
-you can still unlock directly in the Supabase SQL editor:
-
-```sql
-update app_config set strategy_locked = false;
-```
-
-This manual, out-of-band route bypasses the app's own server-side lock
-enforcement, so it should only be used as a last resort when the UI path
-above isn't available — not as the normal recovery step.
-
 ## Architecture notes
 
 See the project's SDD design artifact for the full technical rationale

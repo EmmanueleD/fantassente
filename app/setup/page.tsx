@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth/guard";
 import { getSetupData } from "@/lib/setup/setup-service";
 import { SLOT_CODES, roleGroupOf, type SlotCode, type RoleGroup } from "@/lib/slots";
 import SlotEditor from "./slot-editor";
-import BudgetLockPanel from "./budget-lock-panel";
+import BudgetSummary from "./budget-summary";
 import LogoutButton from "../logout-button";
 
 const GROUP_LABELS: Record<RoleGroup, string> = {
@@ -29,7 +29,7 @@ export default async function SetupPage() {
         <h1 className="text-3xl font-bold">Setup strategia — Miglio</h1>
         <LogoutButton />
       </div>
-      <BudgetLockPanel initialBudget={data.initialBudget} strategyLocked={data.strategyLocked} />
+      <BudgetSummary initialBudget={data.initialBudget} remainingBudget={data.remainingBudget} />
       <div className="mt-8 flex flex-col gap-8">
         {Object.entries(groups).map(([group, slots]) => (
           <section key={group}>
@@ -40,7 +40,6 @@ export default async function SetupPage() {
                   key={slot}
                   slot={slot}
                   filled={filled.has(slot)}
-                  strategyLocked={data.strategyLocked}
                   candidates={data.candidates
                     .filter((candidate) => candidate.slot === slot)
                     .sort((a, b) => a.priority - b.priority)}

@@ -20,18 +20,17 @@ interface CandidateView {
 interface SlotEditorProps {
   slot: SlotCode;
   filled: boolean;
-  strategyLocked: boolean;
   candidates: CandidateView[];
 }
 
-export default function SlotEditor({ slot, filled, strategyLocked, candidates }: SlotEditorProps) {
+export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps) {
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [priority, setPriority] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const disabled = strategyLocked || isPending;
+  const disabled = isPending;
 
   function handleAdd() {
     setError(null);

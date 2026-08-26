@@ -2,7 +2,7 @@ import { ROLE } from "@/lib/types";
 import { requireRole } from "@/lib/auth/guard";
 import { getSupabaseServerClient } from "@/lib/supabase/server-client";
 import { normalizeName } from "@/lib/normalize";
-import { roleGroupOf, type RoleGroup, type SlotCode } from "@/lib/slots";
+import { SLOT_CODES, roleGroupOf, type RoleGroup, type SlotCode } from "@/lib/slots";
 import AuctionConsole, { type AutocompleteEntry } from "./auction-console";
 import RosterSidebar, { type RosterPurchase } from "./roster-sidebar";
 import PurchaseHistory, { type PurchaseHistoryRow } from "./purchase-history";
@@ -30,7 +30,7 @@ export default async function AuctionPage() {
       .from("purchases")
       .select("slot, player_name, final_price")
       .order("purchased_at", { ascending: false }),
-    client.from("app_config").select("initial_budget, strategy_locked").eq("id", true).single(),
+    client.from("app_config").select("initial_budget").eq("id", true).single(),
   ]);
 
   if (candidatesRes.error) {
@@ -45,9 +45,10 @@ export default async function AuctionPage() {
 
   const candidates = candidatesRes.data as CandidateDbRow[];
   const purchases = purchasesRes.data as PurchaseDbRow[];
-  const config = configRes.data as { initial_budget: number; strategy_locked: boolean };
+  const config = configRes.data as { initial_budget: number };
 
   const filledSlots = new Set(purchases.map((row) => row.slot));
+  const openSlotCodes = SLOT_CODES.filter((slot) => !filledSlots.has(slot));
 
   // Derive the client-safe autocomplete index: one entry per distinct
   // normalized name, display casing = first-seen original.
@@ -97,12 +98,7 @@ export default async function AuctionPage() {
         <div className="flex items-center justify-end">
           <LogoutButton />
         </div>
-        {!config.strategy_locked && (
-          <div className="rounded-lg bg-amber-500 px-4 py-2 font-bold text-slate-900">
-            STRATEGIA NON BLOCCATA
-          </div>
-        )}
-        <AuctionConsole autocompleteIndex={autocompleteIndex} />
+        <AuctionConsole autocompleteIndex={autocompleteIndex} openSlots={openSlotCodes} />
       </section>
       <aside className="flex flex-col gap-6">
         <RosterSidebar
