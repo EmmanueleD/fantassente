@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { lockStrategyAction, setInitialBudgetAction } from "./actions";
+import { lockStrategyAction, setInitialBudgetAction, unlockStrategyAction } from "./actions";
 
 interface BudgetLockPanelProps {
   initialBudget: number;
@@ -40,6 +40,19 @@ export default function BudgetLockPanel({ initialBudget, strategyLocked }: Budge
     });
   }
 
+  function handleUnlock() {
+    if (!window.confirm("Sbloccare la strategia? Potrai tornare a modificarla.")) {
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const result = await unlockStrategyAction();
+      if (!result.ok) {
+        setError(result.error);
+      }
+    });
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
       <label className="flex items-center gap-2">
@@ -61,14 +74,25 @@ export default function BudgetLockPanel({ initialBudget, strategyLocked }: Budge
       >
         Salva budget
       </button>
-      <button
-        type="button"
-        disabled={isPending || strategyLocked}
-        onClick={handleLock}
-        className="rounded bg-red-600 px-3 py-1 font-bold disabled:opacity-30"
-      >
-        {strategyLocked ? "STRATEGIA BLOCCATA" : "BLOCCA STRATEGIA"}
-      </button>
+      {strategyLocked ? (
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={handleUnlock}
+          className="rounded bg-amber-600 px-3 py-1 font-bold disabled:opacity-30"
+        >
+          SBLOCCA STRATEGIA
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={handleLock}
+          className="rounded bg-red-600 px-3 py-1 font-bold disabled:opacity-30"
+        >
+          BLOCCA STRATEGIA
+        </button>
+      )}
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
   );

@@ -85,3 +85,12 @@ export async function lockStrategyAction(): Promise<WriteResult> {
   }
   return result;
 }
+
+export async function unlockStrategyAction(): Promise<WriteResult> {
+  await requireRole(ROLE.MIGLIO);
+  const result = await setupService.unlockStrategy();
+  if (result.ok) {
+    revalidatePath("/setup");
+  }
+  return result;
+}

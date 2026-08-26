@@ -196,3 +196,26 @@ export async function lockStrategy(): Promise<WriteResult> {
   }
   return { ok: true };
 }
+
+/**
+ * Unlocking supersedes the app's original one-way lock design: Miglio can now
+ * unlock, edit candidates/budget, and re-lock through the UI itself. The
+ * manual SQL escape hatch documented in the README is retained only as a
+ * fallback for when the app itself is unreachable, not as the primary path.
+ *
+ * Like locking, this is exempt from its own lock check (you can't unlock
+ * what's locked if unlocking itself is blocked by the lock check) and
+ * idempotent: unlocking an already-unlocked strategy is a no-op success, not
+ * an error.
+ */
+export async function unlockStrategy(): Promise<WriteResult> {
+  const client = getSupabaseServerClient();
+  const { error } = await client
+    .from("app_config")
+    .update({ strategy_locked: false })
+    .eq("id", true);
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}

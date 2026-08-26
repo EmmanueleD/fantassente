@@ -76,19 +76,22 @@ this project — no browser-side Supabase client exists.
 
 ## Escape hatch: unlocking the strategy
 
-The strategy lock (`app_config.strategy_locked`) is a deliberate one-way
-transition in this version of the app — once Miglio locks the strategy from
-`/setup`, there is no UI control to unlock it again (spec decision, not a
-bug). If you need to unlock it anyway (e.g. Miglio made a mistake before the
-auction started), run this directly in the Supabase SQL editor:
+The strategy lock (`app_config.strategy_locked`) is no longer one-way: when the
+strategy is locked, `/setup` shows a "SBLOCCA STRATEGIA" button (Miglio-role
+gated, same server-side enforcement as every other `/setup` write action) that
+unlocks it again. The intended workflow is unlock → edit candidates/budget →
+lock again when done, all through the UI.
+
+As a fallback for when the app itself is unreachable (e.g. deploy is down),
+you can still unlock directly in the Supabase SQL editor:
 
 ```sql
 update app_config set strategy_locked = false;
 ```
 
-This is intentionally a manual, out-of-band action — it bypasses the app's
-own server-side lock enforcement, which is by design, since it is meant to be
-an exceptional recovery step rather than a normal workflow.
+This manual, out-of-band route bypasses the app's own server-side lock
+enforcement, so it should only be used as a last resort when the UI path
+above isn't available — not as the normal recovery step.
 
 ## Architecture notes
 
