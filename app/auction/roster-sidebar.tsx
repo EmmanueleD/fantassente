@@ -1,4 +1,5 @@
 import { SLOT_CODES, roleGroupOf, type RoleGroup, type SlotCode } from "@/lib/slots";
+import { RoleChip } from "@/app/ui/role-chip";
 
 export interface RosterPurchase {
   slot: SlotCode;
@@ -28,36 +29,57 @@ export default function RosterSidebar({ purchases, initialBudget, spent, remaini
   }
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-      <div className="mb-4">
-        <p className="text-sm text-slate-400">
-          Speso {spent} / {initialBudget}
-        </p>
-        <p className="text-3xl font-bold">Residuo {remaining}</p>
-      </div>
-      <div className="flex flex-col gap-4">
-        {Object.entries(groups).map(([group, slots]) => (
-          <div key={group}>
-            <h3 className="mb-1 text-sm font-semibold text-slate-400">{GROUP_LABELS[group as RoleGroup]}</h3>
-            <ul className="flex flex-col gap-0.5 text-sm">
-              {slots.map((slot) => {
-                const row = bySlot.get(slot);
-                return (
-                  <li key={slot} className="flex justify-between border-t border-slate-700 py-1">
-                    <span className="text-slate-400">{slot}</span>
-                    {row ? (
-                      <span>
-                        {row.playerName} · {row.finalPrice}
-                      </span>
-                    ) : (
-                      <span className="text-slate-500">—</span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+    <div className="sb-bezel">
+      <div className="sb-face sb-panel">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="font-display text-xs uppercase tracking-board text-night-500">Speso</p>
+            <p className="sb-jumbo text-xl text-chalk-050">
+              {spent} <span className="text-night-500">/ {initialBudget}</span>
+            </p>
           </div>
-        ))}
+          <div className="relative overflow-hidden rounded-sm px-2 py-1 text-right">
+            <div className="led-grid absolute inset-0 opacity-10" />
+            <p className="relative font-display text-xs uppercase tracking-board text-night-500">Residuo</p>
+            <p className="sb-jumbo relative text-5xl text-faro-300">{remaining}</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4">
+          {Object.entries(groups).map(([group, slots]) => (
+            <div key={group}>
+              <div className="sb-rail">
+                <RoleChip code={group as RoleGroup} variant="compact" />
+                <span className="sb-rail-label">{GROUP_LABELS[group as RoleGroup]}</span>
+              </div>
+              <ul className="flex flex-col gap-0.5 text-sm">
+                {slots.map((slot, index) => {
+                  const row = bySlot.get(slot);
+                  return (
+                    <li
+                      key={slot}
+                      className="animate-sb-settle flex items-center justify-between gap-2 border-t border-night-700 py-2"
+                      style={{ animationDelay: `${index * 20}ms` }}
+                    >
+                      <span className="flex items-center gap-2">
+                        <RoleChip code={slot} variant="compact" />
+                        {row ? (
+                          <span className="font-display text-chalk-200">{row.playerName}</span>
+                        ) : (
+                          <span className="font-display text-night-500">—</span>
+                        )}
+                      </span>
+                      {row ? (
+                        <span className="sb-digit w-16 text-right text-chalk-050">{row.finalPrice}</span>
+                      ) : (
+                        <span className="sb-digit w-16 text-right text-night-500">—</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
