@@ -36,47 +36,64 @@ export default function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-slate-800 p-8"
+      className="sb-bezel flex w-full max-w-sm flex-col"
     >
-      <h1 className="text-2xl font-bold">Accedi</h1>
-      <fieldset className="flex gap-4">
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="role"
-            value={ROLE.MIGLIO}
-            checked={role === ROLE.MIGLIO}
-            onChange={() => setRole(ROLE.MIGLIO)}
-          />
-          Miglio
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="role"
-            value={ROLE.JABU}
-            checked={role === ROLE.JABU}
-            onChange={() => setRole(ROLE.JABU)}
-          />
-          Jabu
-        </label>
-      </fieldset>
-      <input
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="Password"
-        autoFocus
-        className="rounded-lg bg-slate-700 px-4 py-2 text-white"
-      />
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      <button
-        type="submit"
-        disabled={submitting}
-        className="rounded-lg bg-green-600 px-4 py-2 font-bold text-white disabled:opacity-50"
-      >
-        Entra
-      </button>
+      <div className="sb-face sb-panel flex flex-col gap-4">
+        <div>
+          <h1 className="font-display text-2xl font-semibold uppercase tracking-board text-chalk-050">
+            Accedi
+          </h1>
+          <div className="sb-rail" aria-hidden="true" />
+        </div>
+        <fieldset className="flex gap-3">
+          <label className="sb-chip flex-1 cursor-pointer justify-start gap-2 py-3 [min-height:48px] has-[:checked]:border-faro-500 has-[:checked]:drop-shadow-flood">
+            <input
+              type="radio"
+              name="role"
+              value={ROLE.MIGLIO}
+              checked={role === ROLE.MIGLIO}
+              onChange={() => setRole(ROLE.MIGLIO)}
+              className="sr-only"
+            />
+            <span className="sb-digit text-faro-300">M</span>
+            <span className="font-display text-sm uppercase tracking-board">
+              Miglio
+            </span>
+          </label>
+          <label className="sb-chip flex-1 cursor-pointer justify-start gap-2 py-3 [min-height:48px] has-[:checked]:border-faro-500 has-[:checked]:drop-shadow-flood">
+            <input
+              type="radio"
+              name="role"
+              value={ROLE.JABU}
+              checked={role === ROLE.JABU}
+              onChange={() => setRole(ROLE.JABU)}
+              className="sr-only"
+            />
+            <span className="sb-digit text-faro-300">J</span>
+            <span className="font-display text-sm uppercase tracking-board">
+              Jabu
+            </span>
+          </label>
+        </fieldset>
+        <input
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="Password"
+          autoFocus
+          className="sb-input"
+        />
+        {error && (
+          <p className="sb-alert animate-sb-settle text-sm">{error}</p>
+        )}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="sb-btn sb-btn--faro w-full uppercase"
+        >
+          Entra
+        </button>
+      </div>
     </form>
   );
 }
