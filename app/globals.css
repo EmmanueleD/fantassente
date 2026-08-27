@@ -1,1 +1,497 @@
+/*
+ * Il Tabellone da Stadio — stadium scoreboard design system.
+ *
+ * Primitives catalogue (see design doc for full rationale). No `/components`
+ * showcase page is built (Q1 resolved as SKIP) — this file IS the style
+ * guide; read top to bottom.
+ *
+ * Registers:
+ *   full  — reserved for the /auction verdict moment (sb-flash, sb-extinguish,
+ *           sb-scan, drop-shadow-* glow tokens).
+ *   calm  — used everywhere else, including /setup ("back-office of the
+ *           stadium"): sb-settle, sb-ack only, no glow, no looping motion.
+ *
+ * Layout / shape:
+ *   .sb-stage        page shell — near-black base + floodlight wash        (calm)
+ *   .sb-topbar       scoreboard header rail                                 (calm)
+ *   .sb-bezel        outer chamfered metal frame (clip-path sandwich, outer) (both)
+ *   .sb-face         inner chamfered panel face (clip-path sandwich, inner)  (both)
+ *   .sb-frame        corner-accent alternative to .sb-bezel for elements
+ *                    with absolutely-positioned overflow children
+ *                    (never chamfer/clip such a container)                  (both)
+ *   .sb-panel        .sb-bezel > .sb-face with padding — the standard card   (both)
+ *   .sb-rail         section title rail (hairline + lead segment + label)    (both)
+ *
+ * Typography-bearing:
+ *   .sb-digit        tabular numeric text (font-digit, weight 600)           (both)
+ *   .sb-jumbo        large glowing LED-style numeric display                 (both)
+ *   .sb-chip         lineup-card role/slot chip (striped left edge)          (both)
+ *
+ * Controls:
+ *   .sb-btn          base button (chamfered key), variants:
+ *                      --via    go / confirm / assign
+ *                      --siren  destructive / delete
+ *                      --faro   primary CTA / chrome
+ *                      --ghost  secondary / low-emphasis
+ *   .sb-input        text/number input (chamfered face)
+ *   .sb-input--jumbo variant of .sb-input for the auction bid field
+ *   .sb-select       select control (chamfered face)
+ *
+ * Feedback:
+ *   .sb-alert        error/notice plate (siren family)
+ *   .sb-badge--via   small confirmation badge (calm ack pulse)
+ *   .sb-plate--faro  locked/chrome status plate (never a verdict color)
+ *   .sb-tab          tab button (chamfered top-cut plate)
+ *
+ * Texture / motion:
+ *   led-grid         @utility — dot-matrix LED texture (background-image only)
+ *   .sb-scan-veil    absolutely-positioned overlay carrying led-grid + the
+ *                    idle sb-scan ambience (verdict board only, full register)
+ *   animate-sb-flash, animate-sb-extinguish, animate-sb-settle, animate-sb-ack,
+ *   animate-sb-scan  generated utilities from the --animate-sb-* theme tokens
+ */
+
 @import "tailwindcss";
+
+/* fonts come from next/font CSS vars on <html> → must be `inline` */
+@theme inline {
+  --font-display: var(--font-display), "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-digit: var(--font-digit), ui-monospace, "SFMono-Regular", monospace;
+}
+
+@theme {
+  /* ---------- FLOODLIT NIGHT: bases ---------- */
+  --color-night-950: oklch(0.145 0.014 250);  /* page base, board back */
+  --color-night-900: oklch(0.190 0.016 250);  /* panel face */
+  --color-night-850: oklch(0.225 0.018 250);  /* raised face / row hover */
+  --color-night-800: oklch(0.265 0.020 250);  /* bezel metal */
+  --color-night-700: oklch(0.340 0.022 250);  /* hairline / border */
+  --color-night-500: oklch(0.560 0.020 250);  /* muted label text */
+  --color-chalk-200: oklch(0.900 0.008 250);  /* body text (pitch line paint) */
+  --color-chalk-050: oklch(0.975 0.004 250);  /* headings, board lettering */
+
+  /* ---------- SIRENA (stop / OUT / PASSA / errors / delete) ---------- */
+  --color-siren-300: oklch(0.780 0.150 25);   /* text on dark */
+  --color-siren-500: oklch(0.620 0.245 27);   /* fill */
+  --color-siren-700: oklch(0.450 0.190 27);   /* pressed / dim */
+
+  /* ---------- VIA (go / RILANCIA / active / confirm) ---------- */
+  --color-via-300: oklch(0.880 0.190 150);
+  --color-via-500: oklch(0.760 0.220 148);
+  --color-via-700: oklch(0.560 0.170 148);
+
+  /* ---------- FARO (floodlight chrome: focus, primary CTA, locked) ---------- */
+  --color-faro-300: oklch(0.900 0.130 88);
+  --color-faro-500: oklch(0.830 0.170 85);
+  --color-faro-700: oklch(0.640 0.130 82);
+
+  /* ---------- SHAPE (scoreboard, deliberately NOT rounded-lg) ---------- */
+  --radius-board: 0px;    /* panels: hard cut, chamfer does the shaping */
+  --radius-chip: 2px;     /* lineup cards: near-square */
+  --radius-key: 3px;      /* buttons/inputs: machined edge */
+  --chamfer-lg: 16px;     /* big boards (jumbotron) */
+  --chamfer-md: 10px;     /* panels, buttons */
+  --chamfer-sm: 6px;      /* chips, inputs */
+  --hairline: 1px;
+  --bezel: 3px;
+
+  /* ---------- LIGHT (glow) ---------- */
+  --shadow-board: 0 2px 0 0 oklch(0 0 0 / 0.55), inset 0 1px 0 0 oklch(1 0 0 / 0.07);
+  --shadow-inset-face: inset 0 2px 6px 0 oklch(0 0 0 / 0.55);
+  --drop-shadow-flood: 0 0 18px oklch(0.830 0.170 85 / 0.30);
+  --drop-shadow-via: 0 0 22px oklch(0.760 0.220 148 / 0.45);
+  --drop-shadow-siren: 0 0 22px oklch(0.620 0.245 27 / 0.45);
+
+  /* ---------- TYPE RHYTHM ---------- */
+  --tracking-board: 0.10em;   /* all-caps labels/buttons */
+  --tracking-digit: 0.055em;  /* digits */
+  --tracking-jumbo: 0.02em;   /* huge numbers */
+
+  /* ---------- MOTION ---------- */
+  --ease-snap: cubic-bezier(0.2, 0, 0, 1);
+  --ease-board: cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-sb-flash: sb-flash 620ms var(--ease-board) 1 both;
+  --animate-sb-extinguish: sb-extinguish 460ms var(--ease-snap) 1 both;
+  --animate-sb-settle: sb-settle 180ms var(--ease-snap) 1 both;   /* calm register */
+  --animate-sb-ack: sb-ack 260ms var(--ease-snap) 1 both;         /* calm confirm */
+  --animate-sb-scan: sb-scan 7s linear infinite;                  /* idle ambience only */
+
+  @keyframes sb-flash {
+    0%   { opacity: .15; transform: scale(.965); filter: brightness(2.6) saturate(1.35); }
+    10%  { opacity: 1;   transform: scale(1.035); filter: brightness(2.6) saturate(1.35); }
+    22%  { transform: scale(.995); filter: brightness(.80); }
+    36%  { filter: brightness(2.2); }
+    50%  { filter: brightness(.88); }
+    64%  { filter: brightness(1.9); }
+    100% { opacity: 1; transform: scale(1); filter: brightness(1) saturate(1); }
+  }
+
+  @keyframes sb-extinguish {
+    0%   { opacity: 1; transform: scaleY(1.05); filter: brightness(2.8) saturate(1.5); }
+    16%  { transform: scaleY(.93); filter: brightness(.45); }
+    30%  { transform: scaleY(1.02); filter: brightness(1.7); }
+    46%  { transform: scaleY(.985); filter: brightness(.75); }
+    100% { opacity: 1; transform: scaleY(1); filter: brightness(1) saturate(1); }
+  }
+
+  @keyframes sb-settle {
+    0%   { opacity: .35; transform: translateY(3px); }
+    100% { opacity: 1;   transform: translateY(0); }
+  }
+
+  @keyframes sb-ack {
+    0%   { box-shadow: inset 0 0 0 2px var(--color-via-500); filter: brightness(1.35); }
+    70%  { box-shadow: inset 0 0 0 2px var(--color-via-700); }
+    100% { box-shadow: inset 0 0 0 2px transparent; filter: brightness(1); }
+  }
+
+  @keyframes sb-scan {
+    from { background-position-y: 0; }
+    to   { background-position-y: 24px; }
+  }
+}
+
+@layer components {
+  /* ---------- Page shell ---------- */
+  .sb-stage {
+    background-color: var(--color-night-950);
+    background-image:
+      radial-gradient(600px circle at 0% 0%, color-mix(in oklch, var(--color-faro-500) 6%, transparent), transparent 60%),
+      radial-gradient(600px circle at 100% 0%, color-mix(in oklch, var(--color-faro-500) 6%, transparent), transparent 60%),
+      repeating-linear-gradient(180deg, color-mix(in oklch, var(--color-chalk-050) 2%, transparent) 0 1px, transparent 1px 64px);
+    background-attachment: fixed;
+  }
+
+  .sb-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--color-night-900);
+    border-bottom: var(--hairline) solid var(--color-night-700);
+  }
+
+  /* ---------- Bezel / face chamfer sandwich (§5.1) ---------- */
+  /* Never wrap an element with absolutely-positioned overflow children in
+     .sb-bezel/.sb-face — clip-path clips overflow. Use .sb-frame instead. */
+  .sb-bezel {
+    background-color: var(--color-night-800);
+    padding: var(--bezel);
+    box-shadow: var(--shadow-board);
+    clip-path: polygon(
+      var(--chamfer-md) 0, 100% 0, 100% calc(100% - var(--chamfer-md)),
+      calc(100% - var(--chamfer-md)) 100%, 0 100%, 0 var(--chamfer-md)
+    );
+  }
+
+  .sb-face {
+    background-color: var(--color-night-900);
+    box-shadow: var(--shadow-inset-face);
+    clip-path: polygon(
+      var(--chamfer-sm) 0, 100% 0, 100% calc(100% - var(--chamfer-sm)),
+      calc(100% - var(--chamfer-sm)) 100%, 0 100%, 0 var(--chamfer-sm)
+    );
+  }
+
+  .sb-frame {
+    position: relative;
+    background-color: var(--color-night-900);
+  }
+  .sb-frame::before,
+  .sb-frame::after,
+  .sb-frame > .sb-frame-corner-tl,
+  .sb-frame > .sb-frame-corner-br {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+  }
+  .sb-frame::before {
+    top: 0;
+    left: 0;
+    border-top: 2px solid var(--color-chalk-200);
+    border-left: 2px solid var(--color-chalk-200);
+  }
+  .sb-frame::after {
+    bottom: 0;
+    right: 0;
+    border-bottom: 2px solid var(--color-chalk-200);
+    border-right: 2px solid var(--color-chalk-200);
+  }
+
+  .sb-panel {
+    /* compose with .sb-bezel on the outer element and .sb-face on the inner
+       element; this class carries the shared padding rhythm */
+    padding: 1rem;
+  }
+
+  .sb-rail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: var(--hairline) solid var(--color-night-700);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .sb-rail::before {
+    content: "";
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+    background-color: var(--color-faro-700);
+  }
+  .sb-rail-label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-board);
+    color: var(--color-night-500);
+    font-size: 0.75rem;
+  }
+
+  /* ---------- Digits / jumbotron numbers (§5.3) ---------- */
+  .sb-digit {
+    font-family: var(--font-digit);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: var(--tracking-digit);
+  }
+
+  .sb-jumbo {
+    font-family: var(--font-digit);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: var(--tracking-jumbo);
+    line-height: .9;
+    text-shadow:
+      0 0 .06em currentColor,
+      0 0 .38em color-mix(in oklch, currentColor 45%, transparent);
+  }
+
+  /* ---------- Lineup-card chip (§5.4) ---------- */
+  .sb-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+    background-color: var(--color-night-900);
+    border: var(--hairline) solid var(--color-night-700);
+    border-radius: var(--radius-chip);
+    color: var(--color-chalk-050);
+  }
+  .sb-chip::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: 3px;
+    background-image: repeating-linear-gradient(
+      180deg,
+      var(--color-chalk-200) 0 2px,
+      transparent 2px 5px
+    );
+  }
+  .sb-chip[data-interactive="true"] {
+    min-height: 44px;
+    min-width: 44px;
+    cursor: pointer;
+  }
+  .sb-chip[data-selected="true"] {
+    border-color: var(--color-faro-500);
+    filter: drop-shadow(var(--drop-shadow-flood));
+  }
+
+  /* ---------- Buttons (§5.5) ---------- */
+  .sb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.5rem 1.25rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-board);
+    border-radius: var(--radius-key);
+    clip-path: polygon(
+      var(--chamfer-sm) 0, 100% 0, 100% calc(100% - var(--chamfer-sm)),
+      calc(100% - var(--chamfer-sm)) 100%, 0 100%, 0 var(--chamfer-sm)
+    );
+    box-shadow: var(--shadow-board);
+    transition: transform 120ms var(--ease-snap), filter 120ms var(--ease-snap);
+  }
+  .sb-btn:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-inset-face);
+  }
+  .sb-btn:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--color-faro-500);
+  }
+  .sb-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: none;
+  }
+
+  .sb-btn--via {
+    background-color: color-mix(in oklch, var(--color-via-700) 55%, var(--color-night-900));
+    color: var(--color-via-300);
+  }
+  .sb-btn--siren {
+    background-color: color-mix(in oklch, var(--color-siren-700) 55%, var(--color-night-900));
+    color: var(--color-siren-300);
+  }
+  .sb-btn--faro {
+    background-color: color-mix(in oklch, var(--color-faro-700) 55%, var(--color-night-900));
+    color: var(--color-faro-300);
+  }
+  .sb-btn--ghost {
+    background-color: var(--color-night-850);
+    color: var(--color-chalk-200);
+    border: var(--hairline) solid var(--color-night-700);
+  }
+
+  /* ---------- Inputs (§5.6) ---------- */
+  .sb-input,
+  .sb-select {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--color-night-950);
+    box-shadow: var(--shadow-inset-face);
+    border-radius: var(--radius-key);
+    clip-path: polygon(
+      var(--chamfer-sm) 0, 100% 0, 100% calc(100% - var(--chamfer-sm)),
+      calc(100% - var(--chamfer-sm)) 100%, 0 100%, 0 var(--chamfer-sm)
+    );
+    border-bottom: 2px solid var(--color-night-700);
+    color: var(--color-chalk-050);
+    font-family: var(--font-display);
+  }
+  .sb-input::placeholder {
+    color: var(--color-night-500);
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-board);
+  }
+  .sb-input:focus,
+  .sb-select:focus {
+    outline: none;
+    border-bottom-color: var(--color-faro-500);
+    box-shadow: var(--shadow-inset-face), inset 0 0 0 2px var(--color-faro-500);
+  }
+
+  .sb-input--jumbo {
+    font-family: var(--font-digit);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    text-align: right;
+    color: var(--color-faro-300);
+    caret-color: var(--color-faro-500);
+  }
+
+  /* ---------- Feedback ---------- */
+  .sb-alert {
+    position: relative;
+    padding: 0.5rem 0.75rem 0.5rem 1rem;
+    background-color: color-mix(in oklch, var(--color-siren-700) 20%, transparent);
+    color: var(--color-siren-300);
+    border-radius: var(--radius-key);
+  }
+  .sb-alert::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background-color: var(--color-siren-500);
+  }
+
+  .sb-badge--via {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-key);
+    background-color: color-mix(in oklch, var(--color-via-700) 30%, transparent);
+    color: var(--color-via-300);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-board);
+    font-size: 0.75rem;
+  }
+
+  .sb-plate--faro {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-key);
+    background-color: color-mix(in oklch, var(--color-faro-700) 20%, transparent);
+    color: var(--color-faro-300);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-board);
+    font-size: 0.75rem;
+  }
+
+  .sb-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-board);
+    color: var(--color-night-500);
+    background-color: var(--color-night-900);
+    clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
+    border-bottom: 3px solid transparent;
+  }
+  .sb-tab[data-active="true"] {
+    color: var(--color-chalk-050);
+    background-color: var(--color-night-850);
+    border-bottom-color: var(--color-faro-500);
+  }
+
+  /* ---------- Verdict board scan veil (full register, idle only) ---------- */
+  .sb-scan-veil {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-position-y: 0;
+  }
+}
+
+@utility led-grid {
+  background-image:
+    repeating-linear-gradient(0deg, oklch(0 0 0 / .42) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, oklch(0 0 0 / .28) 0 1px, transparent 1px 3px);
+}
+
+/* ---------- Reduced motion override (CC-4) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .sb-scan-veil {
+    animation: none !important;
+    background-image: none !important;
+  }
+}
