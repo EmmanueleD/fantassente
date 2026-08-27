@@ -93,10 +93,19 @@ export default async function AuctionPage() {
   const remaining = config.initial_budget - spent;
 
   return (
-    <main className="grid min-h-screen grid-cols-1 gap-6 bg-slate-900 p-6 text-white lg:grid-cols-[1fr_360px]">
+    <main className="sb-stage grid min-h-screen grid-cols-1 gap-6 p-6 text-chalk-200 lg:grid-cols-[1fr_360px]">
       <section className="flex flex-col gap-6">
-        <div className="flex items-center justify-end">
-          <LogoutButton />
+        <div className="sb-topbar">
+          <div className="flex items-baseline gap-3">
+            <span className="font-digit text-lg tracking-board text-faro-300">FANTASSENTE</span>
+            <span className="font-display text-xs uppercase tracking-board text-night-500">
+              Console asta
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="sb-plate--faro">Jabu</span>
+            <LogoutButton />
+          </div>
         </div>
         <AuctionConsole autocompleteIndex={autocompleteIndex} openSlots={openSlotCodes} />
       </section>
