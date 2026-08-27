@@ -7,6 +7,7 @@ import SetupTabs from "./setup-tabs";
 import LogoutButton from "../logout-button";
 import RosterSidebar, { type RosterPurchase } from "@/app/auction/roster-sidebar";
 import PurchaseHistory, { type PurchaseHistoryRow } from "@/app/auction/purchase-history";
+import { RoleChip } from "@/app/ui/role-chip";
 
 const GROUP_LABELS: Record<RoleGroup, string> = {
   P: "Portieri",
@@ -30,7 +31,11 @@ export default async function SetupPage() {
       <div className="flex flex-col gap-8">
         {Object.entries(groups).map(([group, slots]) => (
           <section key={group}>
-            <h2 className="mb-3 text-xl font-semibold">{GROUP_LABELS[group as RoleGroup]}</h2>
+            <div className="sb-rail">
+              <RoleChip code={group as RoleGroup} variant="compact" />
+              <span className="sb-rail-label">{GROUP_LABELS[group as RoleGroup]}</span>
+              <span className="sb-digit ml-auto text-xs text-night-500">{slots.length}</span>
+            </div>
             <div className="flex flex-col gap-4">
               {slots.map((slot) => (
                 <SlotEditor
@@ -77,10 +82,18 @@ export default async function SetupPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-900 p-6 text-white">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Setup strategia — Miglio</h1>
-        <LogoutButton />
+    <main className="sb-stage min-h-screen p-6 text-chalk-200">
+      <div className="sb-topbar mb-6">
+        <div className="flex items-baseline gap-3">
+          <span className="font-digit text-lg tracking-board text-faro-300">FANTASSENTE</span>
+          <span className="font-display text-xs uppercase tracking-board text-night-500">
+            Setup strategia
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="sb-plate--faro">Miglio</span>
+          <LogoutButton />
+        </div>
       </div>
       <SetupTabs strategyContent={strategyContent} teamContent={teamContent} />
     </main>

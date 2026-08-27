@@ -35,38 +35,42 @@ export default function SetupTabs({ strategyContent, teamContent }: SetupTabsPro
 
   return (
     <div>
-      <div className="mb-6 flex items-center gap-4 border-b border-slate-700 pb-2">
+      <div className="mb-6 flex items-center gap-2 border-b border-night-700 pb-0">
         <button
           type="button"
           onClick={() => setTab("strategia")}
-          className={`text-lg font-semibold ${tab === "strategia" ? "text-white" : "text-slate-500"}`}
+          data-active={tab === "strategia" ? "true" : undefined}
+          className="sb-tab"
         >
           Strategia
         </button>
         <button
           type="button"
           onClick={() => setTab("squadra")}
-          className={`text-lg font-semibold ${tab === "squadra" ? "text-white" : "text-slate-500"}`}
+          data-active={tab === "squadra" ? "true" : undefined}
+          className="sb-tab"
         >
           La mia squadra
         </button>
         {tab === "squadra" && (
           <div className="ml-auto flex items-center gap-2">
-            {justRefreshed && (
-              <span className="text-sm font-semibold text-green-400">Aggiornato ✓</span>
-            )}
+            {justRefreshed && <span className="sb-badge--via animate-sb-ack">Aggiornato ✓</span>}
             <button
               type="button"
               onClick={handleRefresh}
               disabled={isPending}
-              className="rounded bg-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-600 disabled:opacity-50"
+              className="sb-btn sb-btn--ghost"
             >
-              {isPending ? "Aggiornamento..." : "Aggiorna"}
+              <span className="animate-sb-settle" key={isPending ? "pending" : "idle"}>
+                {isPending ? "Aggiornamento..." : "Aggiorna"}
+              </span>
             </button>
           </div>
         )}
       </div>
-      {tab === "strategia" ? strategyContent : teamContent}
+      <div key={tab} className="animate-sb-settle">
+        {tab === "strategia" ? strategyContent : teamContent}
+      </div>
     </div>
   );
 }
