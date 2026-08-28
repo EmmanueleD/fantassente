@@ -166,10 +166,21 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
     gap: 1rem;
     padding: 0.75rem 1rem;
     background-color: var(--color-night-900);
     border-bottom: var(--hairline) solid var(--color-night-700);
+  }
+
+  /* Topbar's two inner clusters (title block, badge+logout block) must be
+     allowed to wrap onto their own line and their text must be allowed to
+     shrink below its intrinsic width, or the flex-wrap above never kicks in
+     and the row overflows the viewport on narrow screens instead. */
+  .sb-topbar > div {
+    flex-wrap: wrap;
+    min-width: 0;
   }
 
   /* ---------- Bezel / face chamfer sandwich (§5.1) ---------- */
