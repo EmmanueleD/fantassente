@@ -166,10 +166,21 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
     gap: 1rem;
     padding: 0.75rem 1rem;
     background-color: var(--color-night-900);
     border-bottom: var(--hairline) solid var(--color-night-700);
+  }
+
+  /* Topbar's two inner clusters (title block, badge+logout block) must be
+     allowed to wrap onto their own line and their text must be allowed to
+     shrink below its intrinsic width, or the flex-wrap above never kicks in
+     and the row overflows the viewport on narrow screens instead. */
+  .sb-topbar > div {
+    flex-wrap: wrap;
+    min-width: 0;
   }
 
   /* ---------- Bezel / face chamfer sandwich (§5.1) ---------- */
@@ -398,6 +409,35 @@
     text-align: right;
     color: var(--color-faro-300);
     caret-color: var(--color-faro-500);
+  }
+
+  /* ---------- Number stepper (custom +/- controls, no native spinner) ---------- */
+  .sb-stepper {
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+    flex: 1 1 9.5rem;
+    min-width: 9.5rem;
+  }
+  .sb-stepper__btn {
+    min-height: 48px;
+    min-width: 44px;
+    padding: 0 0.5rem;
+    font-family: var(--font-digit);
+    font-weight: 800;
+    line-height: 1;
+    flex: 0 0 auto;
+  }
+  .sb-stepper__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+  .sb-stepper__input::-webkit-outer-spin-button,
+  .sb-stepper__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   /* ---------- Feedback ---------- */

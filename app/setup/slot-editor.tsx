@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { SlotCode } from "@/lib/slots";
 import { RoleChip } from "@/app/ui/role-chip";
+import { NumberStepper } from "@/app/ui/number-stepper";
 import {
   addCandidateAction,
   deleteCandidateAction,
@@ -22,6 +23,39 @@ interface SlotEditorProps {
   slot: SlotCode;
   filled: boolean;
   candidates: CandidateView[];
+}
+
+interface PriceStepperCellProps {
+  maxPrice: number;
+  disabled: boolean;
+  onCommit: (value: string) => void;
+}
+
+/**
+ * Local controlled stepper for a single candidate row's max price. Mirrors
+ * the prior uncontrolled defaultValue+onBlur behavior exactly: the server
+ * action fires on blur (typing) or immediately after a stepper click, never
+ * on every keystroke. Resyncs from props when the server-confirmed value
+ * changes (e.g. after a successful commit elsewhere).
+ */
+function PriceStepperCell({ maxPrice, disabled, onCommit }: PriceStepperCellProps) {
+  const [value, setValue] = useState(String(maxPrice));
+
+  useEffect(() => {
+    setValue(String(maxPrice));
+  }, [maxPrice]);
+
+  return (
+    <NumberStepper
+      aria-label="Prezzo max"
+      min={1}
+      value={value}
+      disabled={disabled}
+      onChange={setValue}
+      onCommit={onCommit}
+      className="text-right"
+    />
+  );
 }
 
 export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps) {
@@ -115,7 +149,7 @@ export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps
           {filled && <span className="sb-plate--faro">Occupato</span>}
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[30rem] text-sm">
             <thead>
               <tr className="text-left font-display uppercase tracking-board text-night-500">
                 <th className="pb-2 font-semibold">Priorità</th>
@@ -151,13 +185,10 @@ export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps
                   </td>
                   <td className="font-display text-chalk-200">{candidate.playerName}</td>
                   <td>
-                    <input
-                      type="number"
-                      min={1}
-                      defaultValue={candidate.maxPrice}
+                    <PriceStepperCell
+                      maxPrice={candidate.maxPrice}
                       disabled={disabled}
-                      onBlur={(event) => handlePriceChange(candidate.id, event.target.value)}
-                      className="sb-input sb-digit w-20 text-right disabled:opacity-50"
+                      onCommit={(value) => handlePriceChange(candidate.id, value)}
                     />
                   </td>
                   <td>
@@ -183,23 +214,23 @@ export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps
             onChange={(event) => setName(event.target.value)}
             className="sb-input disabled:opacity-50"
           />
-          <input
+          <NumberStepper
+            aria-label="Prezzo max"
             placeholder="Prezzo max"
-            type="number"
             min={1}
             value={price}
             disabled={disabled}
-            onChange={(event) => setPrice(event.target.value)}
-            className="sb-input sb-digit w-24 text-right disabled:opacity-50"
+            onChange={setPrice}
+            className="text-right"
           />
-          <input
+          <NumberStepper
+            aria-label="Priorità"
             placeholder="Priorità"
-            type="number"
             min={1}
             value={priority}
             disabled={disabled}
-            onChange={(event) => setPriority(event.target.value)}
-            className="sb-input sb-digit w-20 text-right disabled:opacity-50"
+            onChange={setPriority}
+            className="text-right"
           />
           <button
             type="button"
