@@ -411,6 +411,35 @@
     caret-color: var(--color-faro-500);
   }
 
+  /* ---------- Number stepper (custom +/- controls, no native spinner) ---------- */
+  .sb-stepper {
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+    flex: 1 1 9.5rem;
+    min-width: 9.5rem;
+  }
+  .sb-stepper__btn {
+    min-height: 48px;
+    min-width: 44px;
+    padding: 0 0.5rem;
+    font-family: var(--font-digit);
+    font-weight: 800;
+    line-height: 1;
+    flex: 0 0 auto;
+  }
+  .sb-stepper__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+  .sb-stepper__input::-webkit-outer-spin-button,
+  .sb-stepper__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
   /* ---------- Feedback ---------- */
   .sb-alert {
     position: relative;
