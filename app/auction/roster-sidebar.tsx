@@ -28,29 +28,41 @@ export default function RosterSidebar({ purchases, initialBudget, spent, remaini
   }
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-      <div className="mb-4">
-        <p className="text-sm text-slate-400">
-          Speso {spent} / {initialBudget}
-        </p>
-        <p className="text-3xl font-bold">Residuo {remaining}</p>
+    <div className="ds-card ds-card-pad">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase leading-[1.2] text-[var(--color-neutral-900)]">
+            Speso {spent} / {initialBudget}
+          </p>
+          <p className="text-[30px] font-medium leading-none text-[var(--color-neutral-900)]">
+            Residuo {remaining}
+          </p>
+        </div>
+        <div className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-[14px] text-[var(--color-text)] shadow-[var(--shadow-lg)]">
+          rosa
+        </div>
       </div>
       <div className="flex flex-col gap-4">
         {Object.entries(groups).map(([group, slots]) => (
           <div key={group}>
-            <h3 className="mb-1 text-sm font-semibold text-slate-400">{GROUP_LABELS[group as RoleGroup]}</h3>
-            <ul className="flex flex-col gap-0.5 text-sm">
+            <h3 className="mb-2 text-[12px] font-bold uppercase leading-[1.2] text-[var(--color-neutral-900)]">
+              {GROUP_LABELS[group as RoleGroup]}
+            </h3>
+            <ul className="flex flex-col gap-1 text-[14px]">
               {slots.map((slot) => {
                 const row = bySlot.get(slot);
                 return (
-                  <li key={slot} className="flex justify-between border-t border-slate-700 py-1">
-                    <span className="text-slate-400">{slot}</span>
+                  <li
+                    key={slot}
+                    className="flex justify-between gap-2 rounded-[16px] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-text)]"
+                  >
+                    <span className="text-[var(--color-neutral-700)]">{slot}</span>
                     {row ? (
-                      <span>
+                      <span className="text-right">
                         {row.playerName} · {row.finalPrice}
                       </span>
                     ) : (
-                      <span className="text-slate-500">—</span>
+                      <span className="text-[var(--color-neutral-700)]">—</span>
                     )}
                   </li>
                 );

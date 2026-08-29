@@ -87,15 +87,15 @@ export default function PurchaseManager({ rows }: { rows: ManagedPurchase[] }) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-      <h3 className="mb-2 font-bold">Storico acquisti</h3>
+    <div className="ds-card-dark ds-card-pad">
+      <h3 className="mb-4 text-[20px] font-semibold leading-[1.5]">Gestione acquisti</h3>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">Nessun acquisto ancora.</p>
+        <p className="ds-muted">Nessun acquisto ancora.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="ds-table">
             <thead>
-              <tr className="text-left text-slate-400">
+              <tr>
                 <th>Giocatore</th>
                 <th>Slot</th>
                 <th>Prezzo</th>
@@ -104,58 +104,50 @@ export default function PurchaseManager({ rows }: { rows: ManagedPurchase[] }) {
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.slot} className="border-t border-slate-700 align-top">
+                <tr key={row.slot} className="align-top">
                   {editingSlot === row.slot ? (
-                    <td colSpan={4} className="py-2">
+                    <td colSpan={4}>
                       <div className="flex flex-wrap items-center gap-2">
                         <input
                           value={editName}
                           onChange={(event) => setEditName(event.target.value)}
-                          className="rounded bg-slate-700 px-2 py-1"
+                          className="ds-input-compact"
                         />
                         <input
                           type="number"
                           value={editPrice}
                           onChange={(event) => setEditPrice(event.target.value)}
-                          className="w-20 rounded bg-slate-700 px-2 py-1"
+                          className="ds-input-compact w-20"
                         />
-                        <span className="text-slate-400">({row.slot})</span>
+                        <span className="ds-muted">({row.slot})</span>
                         <button
                           type="button"
                           disabled={busy}
                           onClick={() => void saveEdit(row.slot)}
-                          className="rounded bg-green-600 px-3 py-1 font-bold disabled:opacity-40"
+                          className="ds-button-primary"
                         >
                           Salva
                         </button>
-                        <button
-                          type="button"
-                          onClick={cancelEdit}
-                          className="rounded bg-slate-600 px-3 py-1"
-                        >
+                        <button type="button" onClick={cancelEdit} className="ds-button-tertiary">
                           annulla
                         </button>
                       </div>
-                      {error && <p className="mt-1 text-xs font-bold text-red-400">{error}</p>}
+                      {error && <p className="mt-2 text-[12px] font-bold text-[var(--color-warning)]">{error}</p>}
                     </td>
                   ) : (
                     <>
-                      <td className="py-1">{row.playerName}</td>
+                      <td>{row.playerName}</td>
                       <td>{row.slot}</td>
                       <td>{row.finalPrice}</td>
-                      <td className="whitespace-nowrap py-1 text-xs">
-                        <button
-                          type="button"
-                          onClick={() => startEdit(row)}
-                          className="mr-2 text-blue-400 underline"
-                        >
+                      <td className="whitespace-nowrap">
+                        <button type="button" onClick={() => startEdit(row)} className="ds-button-secondary mr-2">
                           modifica
                         </button>
                         <button
                           type="button"
                           disabled={busy}
                           onClick={() => void handleDelete(row.slot)}
-                          className="text-red-400 underline disabled:opacity-40"
+                          className="ds-button-danger"
                         >
                           elimina
                         </button>

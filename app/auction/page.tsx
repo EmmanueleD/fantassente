@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth/guard";
 import { getSupabaseServerClient } from "@/lib/supabase/server-client";
 import { normalizeName } from "@/lib/normalize";
 import { SLOT_CODES, roleGroupOf, type RoleGroup, type SlotCode } from "@/lib/slots";
+import { recommendMiglioCallName } from "@/lib/auction/recommend-call";
 import AuctionConsole, { type AutocompleteEntry } from "./auction-console";
 import RosterSidebar, { type RosterPurchase } from "./roster-sidebar";
 import PurchaseManager, { type ManagedPurchase } from "./purchase-manager";
@@ -11,6 +12,7 @@ import LogoutButton from "../logout-button";
 interface CandidateDbRow {
   slot: SlotCode;
   player_name: string;
+  priority: number;
 }
 
 interface PurchaseDbRow {
@@ -24,8 +26,8 @@ export default async function AuctionPage() {
   const client = getSupabaseServerClient();
 
   const [candidatesRes, purchasesRes, configRes] = await Promise.all([
-    // Explicit two-column select — max_price/priority are never fetched here (design D-G, spec §7).
-    client.from("candidates").select("slot, player_name"),
+    // Explicit safe select — max_price is never fetched here; priority stays server-only.
+    client.from("candidates").select("slot, player_name, priority"),
     client
       .from("purchases")
       .select("slot, player_name, final_price")
@@ -49,6 +51,14 @@ export default async function AuctionPage() {
 
   const filledSlots = new Set(purchases.map((row) => row.slot));
   const openSlotCodes = SLOT_CODES.filter((slot) => !filledSlots.has(slot));
+  const miglioCallName = recommendMiglioCallName(
+    openSlotCodes,
+    candidates.map((row) => ({
+      slot: row.slot,
+      playerName: row.player_name,
+      priority: row.priority,
+    }))
+  );
 
   // Derive the client-safe autocomplete index: one entry per distinct
   // normalized name, display casing = first-seen original.
@@ -93,22 +103,30 @@ export default async function AuctionPage() {
   const remaining = config.initial_budget - spent;
 
   return (
-    <main className="grid min-h-screen grid-cols-1 gap-6 bg-slate-900 p-6 text-white lg:grid-cols-[1fr_360px]">
-      <section className="flex flex-col gap-6">
-        <div className="flex items-center justify-end">
-          <LogoutButton />
-        </div>
-        <AuctionConsole autocompleteIndex={autocompleteIndex} openSlots={openSlotCodes} />
-      </section>
-      <aside className="flex flex-col gap-6">
-        <RosterSidebar
-          purchases={rosterPurchases}
-          initialBudget={config.initial_budget}
-          spent={spent}
-          remaining={remaining}
-        />
+    <>
+      <main className="ds-shell ds-bento-grid ds-auction-main-with-footer">
+        <section className="ds-stack">
+          <div className="flex items-center justify-end">
+            <LogoutButton />
+          </div>
+          <AuctionConsole
+            autocompleteIndex={autocompleteIndex}
+            openSlots={openSlotCodes}
+            miglioCallName={miglioCallName}
+          />
+        </section>
+        <aside className="ds-stack">
+          <RosterSidebar
+            purchases={rosterPurchases}
+            initialBudget={config.initial_budget}
+            spent={spent}
+            remaining={remaining}
+          />
+        </aside>
+      </main>
+      <footer className="ds-purchase-footer">
         <PurchaseManager rows={historyRows} />
-      </aside>
-    </main>
+      </footer>
+    </>
   );
 }

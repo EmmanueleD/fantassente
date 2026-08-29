@@ -22,8 +22,6 @@ export default function SetupTabs({ strategyContent, teamContent }: SetupTabsPro
     });
   }
 
-  // Fires once the refreshed RSC payload from router.refresh() has actually
-  // been applied (isPending flips true -> false), not on initial mount.
   useEffect(() => {
     if (!isPending && hasPendingRefreshRef.current) {
       hasPendingRefreshRef.current = false;
@@ -34,33 +32,26 @@ export default function SetupTabs({ strategyContent, teamContent }: SetupTabsPro
   }, [isPending]);
 
   return (
-    <div>
-      <div className="mb-6 flex items-center gap-4 border-b border-slate-700 pb-2">
+    <div className="ds-stack">
+      <div className="ds-card-dark ds-card-pad flex flex-wrap items-center gap-4">
         <button
           type="button"
           onClick={() => setTab("strategia")}
-          className={`text-lg font-semibold ${tab === "strategia" ? "text-white" : "text-slate-500"}`}
+          className={tab === "strategia" ? "ds-button-primary" : "ds-button-tertiary"}
         >
           Strategia
         </button>
         <button
           type="button"
           onClick={() => setTab("squadra")}
-          className={`text-lg font-semibold ${tab === "squadra" ? "text-white" : "text-slate-500"}`}
+          className={tab === "squadra" ? "ds-button-primary" : "ds-button-tertiary"}
         >
           La mia squadra
         </button>
         {tab === "squadra" && (
           <div className="ml-auto flex items-center gap-2">
-            {justRefreshed && (
-              <span className="text-sm font-semibold text-green-400">Aggiornato ✓</span>
-            )}
-            <button
-              type="button"
-              onClick={handleRefresh}
-              disabled={isPending}
-              className="rounded bg-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-600 disabled:opacity-50"
-            >
+            {justRefreshed && <span className="font-semibold text-[var(--color-success)]">Aggiornato ✓</span>}
+            <button type="button" onClick={handleRefresh} disabled={isPending} className="ds-button-secondary">
               {isPending ? "Aggiornamento..." : "Aggiorna"}
             </button>
           </div>

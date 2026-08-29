@@ -93,75 +93,80 @@ export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps
   }
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-      <h3 className="mb-2 font-bold">
-        {slot} {filled && <span className="ml-2 text-xs text-amber-400">OCCUPATO</span>}
-      </h3>
-      <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-slate-400">
-            <th>Priorità</th>
-            <th>Giocatore</th>
-            <th>Prezzo max</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {candidates.map((candidate, index) => (
-            <tr key={candidate.id} className="border-t border-slate-700">
-              <td className="py-1">
-                <button
-                  type="button"
-                  disabled={disabled || index === 0}
-                  onClick={() => handleMove(index, -1)}
-                  className="mr-1 disabled:opacity-30"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  disabled={disabled || index === candidates.length - 1}
-                  onClick={() => handleMove(index, 1)}
-                  className="disabled:opacity-30"
-                >
-                  ↓
-                </button>
-                <span className="ml-2">{candidate.priority}</span>
-              </td>
-              <td>{candidate.playerName}</td>
-              <td>
-                <input
-                  type="number"
-                  min={1}
-                  defaultValue={candidate.maxPrice}
-                  disabled={disabled}
-                  onBlur={(event) => handlePriceChange(candidate.id, event.target.value)}
-                  className="w-20 rounded bg-slate-700 px-2 py-1 disabled:opacity-50"
-                />
-              </td>
-              <td>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => handleDelete(candidate.id)}
-                  className="text-red-400 disabled:opacity-30"
-                >
-                  elimina
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="ds-card ds-card-pad">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h3 className="text-[30px] font-medium leading-none text-[var(--color-neutral-900)]">{slot}</h3>
+        {filled && (
+          <span className="rounded-full bg-[var(--color-warning)] px-4 py-2 text-[14px] font-bold text-[var(--color-neutral-900)]">
+            OCCUPATO
+          </span>
+        )}
       </div>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="overflow-x-auto">
+        <table className="ds-table text-[var(--color-neutral-900)]">
+          <thead>
+            <tr>
+              <th className="!text-[var(--color-neutral-900)]">Priorità</th>
+              <th className="!text-[var(--color-neutral-900)]">Giocatore</th>
+              <th className="!text-[var(--color-neutral-900)]">Prezzo max</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {candidates.map((candidate, index) => (
+              <tr key={candidate.id}>
+                <td>
+                  <button
+                    type="button"
+                    disabled={disabled || index === 0}
+                    onClick={() => handleMove(index, -1)}
+                    className="ds-button-secondary mr-1"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    disabled={disabled || index === candidates.length - 1}
+                    onClick={() => handleMove(index, 1)}
+                    className="ds-button-secondary"
+                  >
+                    ↓
+                  </button>
+                  <span className="ml-2 font-bold">{candidate.priority}</span>
+                </td>
+                <td>{candidate.playerName}</td>
+                <td>
+                  <input
+                    type="number"
+                    min={1}
+                    defaultValue={candidate.maxPrice}
+                    disabled={disabled}
+                    onBlur={(event) => handlePriceChange(candidate.id, event.target.value)}
+                    className="ds-input-compact w-20"
+                  />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => handleDelete(candidate.id)}
+                    className="ds-button-danger"
+                  >
+                    elimina
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
         <input
           placeholder="Giocatore"
           value={name}
           disabled={disabled}
           onChange={(event) => setName(event.target.value)}
-          className="rounded bg-slate-700 px-2 py-1 disabled:opacity-50"
+          className="ds-input-compact"
         />
         <input
           placeholder="Prezzo max"
@@ -170,7 +175,7 @@ export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps
           value={price}
           disabled={disabled}
           onChange={(event) => setPrice(event.target.value)}
-          className="w-24 rounded bg-slate-700 px-2 py-1 disabled:opacity-50"
+          className="ds-input-compact w-24"
         />
         <input
           placeholder="Priorità"
@@ -179,18 +184,18 @@ export default function SlotEditor({ slot, filled, candidates }: SlotEditorProps
           value={priority}
           disabled={disabled}
           onChange={(event) => setPriority(event.target.value)}
-          className="w-20 rounded bg-slate-700 px-2 py-1 disabled:opacity-50"
+          className="ds-input-compact w-20"
         />
         <button
           type="button"
           disabled={disabled || name.trim() === "" || price === "" || priority === ""}
           onClick={handleAdd}
-          className="rounded bg-green-600 px-3 py-1 font-bold disabled:opacity-30"
+          className="ds-button-primary"
         >
           Aggiungi
         </button>
       </div>
-      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-2 text-[12px] font-bold text-[var(--color-error)]">{error}</p>}
     </div>
   );
 }

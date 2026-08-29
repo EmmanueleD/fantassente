@@ -15,6 +15,7 @@ export interface AutocompleteEntry {
 interface AuctionConsoleProps {
   autocompleteIndex: AutocompleteEntry[];
   openSlots: SlotCode[];
+  miglioCallName: string | null;
 }
 
 interface Verdict {
@@ -23,10 +24,10 @@ interface Verdict {
 }
 
 const VERDICT_STYLE: Record<BidStatus, string> = {
-  ACTIVE: "bg-green-600 text-white",
-  OUT: "bg-red-600 text-white",
-  NOT_INTERESTED: "bg-slate-600 text-slate-100",
-  SLOT_FULL: "bg-slate-700 text-slate-300",
+  ACTIVE: "ds-status-success",
+  OUT: "ds-status-error",
+  NOT_INTERESTED: "ds-status-neutral",
+  SLOT_FULL: "ds-status-neutral",
 };
 
 function verdictLabel(verdict: Verdict): string {
@@ -44,7 +45,7 @@ function verdictLabel(verdict: Verdict): string {
   }
 }
 
-export default function AuctionConsole({ autocompleteIndex, openSlots }: AuctionConsoleProps) {
+export default function AuctionConsole({ autocompleteIndex, openSlots, miglioCallName }: AuctionConsoleProps) {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const bidInputRef = useRef<HTMLInputElement>(null);
@@ -68,6 +69,7 @@ export default function AuctionConsole({ autocompleteIndex, openSlots }: Auction
   const [manualPrice, setManualPrice] = useState("");
   const [manualError, setManualError] = useState<string | null>(null);
   const [manualSubmitting, setManualSubmitting] = useState(false);
+  const [miglioCallVisible, setMiglioCallVisible] = useState(false);
 
   function resetManualPanel() {
     setManualOpen(false);
@@ -263,207 +265,222 @@ export default function AuctionConsole({ autocompleteIndex, openSlots }: Auction
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-lg border border-slate-700 p-3">
-        <button
-          type="button"
-          onClick={() => (manualOpen ? resetManualPanel() : setManualOpen(true))}
-          className="text-sm font-bold text-slate-300"
-        >
-          {manualOpen ? "chiudi assegnazione manuale" : "Assegnazione manuale"}
+    <div className="ds-auction-console">
+      <section className="ds-call-strip">
+        <div>
+          <p className="ds-caption uppercase">Prossima chiamata</p>
+          <p className="ds-call-name">{miglioCallVisible ? miglioCallName ?? "NESSUN NOME" : "Pronto"}</p>
+        </div>
+        <button type="button" onClick={() => setMiglioCallVisible(true)} className="ds-button-primary">
+          Miglio chiama
         </button>
-        {manualOpen && (
-          <div className="mt-3 flex flex-col gap-2">
-            <input
-              value={manualName}
-              onChange={(event) => setManualName(event.target.value)}
-              placeholder="Nome giocatore"
-              className="rounded bg-slate-700 px-3 py-2 outline-none"
-            />
-            <select
-              value={manualSlot}
-              onChange={(event) => setManualSlot(event.target.value as SlotCode | "")}
-              className="rounded bg-slate-700 px-3 py-2 outline-none"
-            >
-              <option value="">Slot...</option>
-              {openSlots.map((slot) => (
-                <option key={slot} value={slot}>
-                  {slot}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={manualPrice}
-              onChange={(event) => setManualPrice(event.target.value)}
-              placeholder="Prezzo finale"
-              className="rounded bg-slate-700 px-3 py-2 outline-none"
-            />
-            <button
-              type="button"
-              disabled={
-                manualSubmitting || manualName.trim() === "" || manualSlot === "" || manualPrice === ""
-              }
-              onClick={() => void handleManualAssign()}
-              className="rounded bg-green-600 px-4 py-2 font-bold disabled:opacity-40"
-            >
-              ASSEGNA MANUALMENTE
-            </button>
-            {manualError && <p className="text-sm font-bold text-red-400">{manualError}</p>}
-          </div>
-        )}
-      </div>
+      </section>
 
       {!selected && (
-        <div className="relative">
-          <input
-            ref={searchInputRef}
-            autoFocus
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setHighlightIndex(0);
-            }}
-            onKeyDown={handleSearchKeyDown}
-            placeholder="Cerca giocatore..."
-            className="w-full rounded-lg bg-slate-800 px-4 py-3 text-xl outline-none"
-          />
-          {matches.length > 0 && (
-            <ul className="absolute z-10 mt-1 w-full rounded-lg bg-slate-800 shadow-lg">
-              {matches.map((entry, index) => (
-                <li
-                  key={entry.playerName}
-                  onClick={() => selectEntry(entry)}
-                  className={`cursor-pointer px-4 py-2 ${
-                    index === highlightIndex ? "bg-slate-700" : ""
-                  }`}
-                >
-                  {entry.playerName}{" "}
-                  <span className="text-slate-400">
-                    · {entry.roleGroups.join("/")} · slot: {entry.openSlots.join(", ") || "nessuno aperto"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <section className="ds-card-dark ds-card-pad ds-auction-search">
+          <div className="flex flex-col gap-2">
+            <h1 className="ds-display">Asta live</h1>
+            <p className="ds-muted">Cerca il giocatore, inserisci il prezzo corrente, segui solo il verdetto.</p>
+          </div>
+          <div className="relative">
+            <input
+              ref={searchInputRef}
+              autoFocus
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setHighlightIndex(0);
+              }}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Cerca giocatore..."
+              className="ds-input w-full text-[30px] font-medium leading-none"
+            />
+            {matches.length > 0 && (
+              <ul className="ds-card-dark absolute z-10 mt-2 w-full overflow-hidden">
+                {matches.map((entry, index) => (
+                  <li
+                    key={entry.playerName}
+                    onClick={() => selectEntry(entry)}
+                    className={`cursor-pointer px-4 py-3 ${
+                      index === highlightIndex ? "bg-[var(--color-primary)] text-[var(--color-text)]" : ""
+                    }`}
+                  >
+                    <span className="font-semibold">{entry.playerName}</span>{" "}
+                    <span className={index === highlightIndex ? "text-[var(--color-text)]" : "ds-muted"}>
+                      · {entry.roleGroups.join("/")} · slot: {entry.openSlots.join(", ") || "nessuno aperto"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
       )}
 
       {selected && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between rounded-lg bg-slate-800 px-4 py-3">
-            <div>
-              <p className="text-xl font-bold">{selected.playerName}</p>
-              <p className="text-slate-400">
-                {selected.roleGroups.join("/")} · slot aperti: {selected.openSlots.join(", ") || "nessuno"}
-              </p>
+        <section className="ds-cockpit-panel">
+          <div className="ds-card-dark ds-card-pad ds-cockpit-main">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="ds-caption uppercase">Giocatore in corso</p>
+                <h1 className="ds-display mt-2 uppercase">{selected.playerName}</h1>
+                <p className="ds-muted mt-2">
+                  {selected.roleGroups.join("/")} · slot aperti: {selected.openSlots.join(", ") || "nessuno"}
+                </p>
+              </div>
+              <button type="button" onClick={resetToSearch} className="ds-button-tertiary">
+                cambia
+              </button>
             </div>
-            <button type="button" onClick={resetToSearch} className="text-sm text-slate-400 underline">
-              cambia
-            </button>
-          </div>
 
-          {selected.openSlots.length > 1 && (
-            <div className="flex gap-2">
-              {selected.openSlots.map((slot) => (
-                <button
-                  key={slot}
-                  type="button"
-                  onClick={() => setPinnedSlot(pinnedSlot === slot ? null : slot)}
-                  className={`rounded px-3 py-1 text-sm ${
-                    pinnedSlot === slot ? "bg-blue-600" : "bg-slate-700"
-                  }`}
-                >
-                  {slot}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <input
-            ref={bidInputRef}
-            type="number"
-            inputMode="numeric"
-            value={bidValue}
-            onChange={(event) => setBidValue(event.target.value)}
-            onKeyDown={handleBidKeyDown}
-            placeholder="0"
-            className="w-full rounded-lg bg-slate-800 px-4 py-3 text-5xl font-bold outline-none"
-          />
-          <button
-            type="button"
-            disabled={checking || bidValue === ""}
-            onClick={() => void handleCheck()}
-            className="rounded-lg bg-blue-600 px-4 py-3 text-xl font-bold disabled:opacity-40"
-          >
-            CONTROLLA
-          </button>
-
-          <div
-            className={`flex min-h-[220px] items-center justify-center rounded-2xl px-6 text-center text-6xl font-black uppercase tracking-tight ${
-              verdict ? VERDICT_STYLE[verdict.status] : "bg-slate-800"
-            }`}
-          >
-            {verdict ? verdictLabel(verdict) : "—"}
-          </div>
-
-          {!assignOpen && (
-            <button
-              type="button"
-              onClick={openAssignPanel}
-              className="rounded-lg bg-amber-500 px-4 py-3 text-xl font-bold text-slate-900"
-            >
-              ASSEGNA A MIGLIO
-            </button>
-          )}
-
-          {assignOpen && (
-            <div className="flex flex-col gap-3 rounded-lg bg-slate-800 p-4">
-              <div className="flex gap-2">
+            {selected.openSlots.length > 1 && (
+              <div className="flex flex-wrap gap-2">
                 {selected.openSlots.map((slot) => (
                   <button
                     key={slot}
                     type="button"
-                    onClick={() => setAssignSlot(slot)}
-                    className={`rounded px-3 py-1 text-sm ${
-                      assignSlot === slot ? "bg-blue-600" : "bg-slate-700"
+                    onClick={() => setPinnedSlot(pinnedSlot === slot ? null : slot)}
+                    className={`min-h-11 rounded-[var(--radius-sm)] px-4 py-2 text-[14px] ${
+                      pinnedSlot === slot
+                        ? "bg-[var(--color-primary)] text-[var(--color-text)] shadow-[var(--shadow-lg)]"
+                        : "bg-[var(--color-text)] text-[var(--color-neutral-900)] shadow-[var(--shadow-sm)]"
                     }`}
                   >
                     {slot}
                   </button>
                 ))}
               </div>
+            )}
+
+            <div className="ds-bid-row">
               <input
+                ref={bidInputRef}
                 type="number"
                 inputMode="numeric"
-                value={assignPrice}
-                onChange={(event) => setAssignPrice(event.target.value)}
-                placeholder="Prezzo finale"
-                className="rounded bg-slate-700 px-3 py-2 text-2xl font-bold outline-none"
+                value={bidValue}
+                onChange={(event) => setBidValue(event.target.value)}
+                onKeyDown={handleBidKeyDown}
+                placeholder="0"
+                className="ds-input ds-bid-input"
               />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={assigning || assignSlot === "" || assignPrice === ""}
-                  onClick={() => void handleAssign()}
-                  className="rounded bg-green-600 px-4 py-2 font-bold disabled:opacity-40"
-                >
-                  CONFERMA ASSEGNAZIONE
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAssignOpen(false)}
-                  className="rounded bg-slate-600 px-4 py-2"
-                >
-                  annulla
-                </button>
-              </div>
-              {assignError && <p className="text-sm font-bold text-red-400">{assignError}</p>}
+              <button
+                type="button"
+                disabled={checking || bidValue === ""}
+                onClick={() => void handleCheck()}
+                className="ds-button-primary ds-check-button disabled:opacity-40"
+              >
+                {checking ? "CONTROLLO..." : "CONTROLLA"}
+              </button>
             </div>
-          )}
-        </div>
+
+            <div className={`ds-verdict ${verdict ? VERDICT_STYLE[verdict.status] : "ds-card-dark"}`}>
+              {verdict ? verdictLabel(verdict) : "—"}
+            </div>
+          </div>
+
+          <aside className="ds-stack">
+            {!assignOpen && (
+              <button type="button" onClick={openAssignPanel} className="ds-button-primary w-fit">
+                ASSEGNA A MIGLIO
+              </button>
+            )}
+
+            {assignOpen && (
+              <div className="ds-card-dark ds-card-pad flex flex-col gap-4">
+                <p className="text-[20px] font-semibold leading-[1.5]">Assegna acquisto</p>
+                <div className="flex flex-wrap gap-2">
+                  {selected.openSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => setAssignSlot(slot)}
+                      className={`min-h-11 rounded-[var(--radius-sm)] px-4 py-2 text-[14px] ${
+                        assignSlot === slot
+                          ? "bg-[var(--color-primary)] text-[var(--color-text)] shadow-[var(--shadow-lg)]"
+                          : "bg-[var(--color-text)] text-[var(--color-neutral-900)] shadow-[var(--shadow-sm)]"
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={assignPrice}
+                  onChange={(event) => setAssignPrice(event.target.value)}
+                  placeholder="Prezzo finale"
+                  className="ds-input text-[24px] font-bold leading-none"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={assigning || assignSlot === "" || assignPrice === ""}
+                    onClick={() => void handleAssign()}
+                    className="ds-button-primary disabled:opacity-40"
+                  >
+                    CONFERMA
+                  </button>
+                  <button type="button" onClick={() => setAssignOpen(false)} className="ds-button-tertiary">
+                    annulla
+                  </button>
+                </div>
+                {assignError && <p className="text-[14px] font-bold text-[var(--color-warning)]">{assignError}</p>}
+              </div>
+            )}
+          </aside>
+        </section>
       )}
+
+      <details
+        open={manualOpen}
+        onToggle={(event) => setManualOpen(event.currentTarget.open)}
+        className="ds-card-dark ds-card-pad"
+      >
+        <summary className="cursor-pointer list-none">
+          <span className="ds-button-tertiary">
+            {manualOpen ? "chiudi assegnazione manuale" : "Assegnazione manuale"}
+          </span>
+        </summary>
+        <div className="mt-4 flex flex-col gap-2">
+          <input
+            value={manualName}
+            onChange={(event) => setManualName(event.target.value)}
+            onFocus={() => setManualOpen(true)}
+            placeholder="Nome giocatore"
+            className="ds-input"
+          />
+          <select
+            value={manualSlot}
+            onChange={(event) => setManualSlot(event.target.value as SlotCode | "")}
+            className="ds-input"
+          >
+            <option value="">Slot...</option>
+            {openSlots.map((slot) => (
+              <option key={slot} value={slot}>
+                {slot}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={manualPrice}
+            onChange={(event) => setManualPrice(event.target.value)}
+            placeholder="Prezzo finale"
+            className="ds-input"
+          />
+          <button
+            type="button"
+            disabled={manualSubmitting || manualName.trim() === "" || manualSlot === "" || manualPrice === ""}
+            onClick={() => void handleManualAssign()}
+            className="ds-button-primary w-fit disabled:opacity-40"
+          >
+            ASSEGNA MANUALMENTE
+          </button>
+          {manualError && <p className="text-[14px] font-bold text-[var(--color-warning)]">{manualError}</p>}
+        </div>
+      </details>
     </div>
   );
 }

@@ -12,11 +12,7 @@ export default function LogoutButton() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => void handleLogout()}
-      className="rounded bg-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-600"
-    >
+    <button type="button" onClick={() => void handleLogout()} className="ds-button-tertiary">
       Esci
     </button>
   );

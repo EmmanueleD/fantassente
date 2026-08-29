@@ -30,7 +30,7 @@ export default async function SetupPage() {
       <div className="flex flex-col gap-8">
         {Object.entries(groups).map(([group, slots]) => (
           <section key={group}>
-            <h2 className="mb-3 text-xl font-semibold">{GROUP_LABELS[group as RoleGroup]}</h2>
+            <h2 className="mb-3 text-[20px] font-semibold leading-[1.5]">{GROUP_LABELS[group as RoleGroup]}</h2>
             <div className="flex flex-col gap-4">
               {slots.map((slot) => (
                 <SlotEditor
@@ -77,9 +77,9 @@ export default async function SetupPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-900 p-6 text-white">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Setup strategia — Miglio</h1>
+    <main className="ds-shell">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="ds-title">Setup strategia — Miglio</h1>
         <LogoutButton />
       </div>
       <SetupTabs strategyContent={strategyContent} teamContent={teamContent} />
