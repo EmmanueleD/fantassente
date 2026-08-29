@@ -17,7 +17,8 @@ npm run dev
 The app boots without any Supabase env vars set (the Supabase client is a lazy
 singleton that only fails when actually used), but no page will function
 correctly until you configure a Supabase project and the environment
-variables below.
+variables below. Miglio's dedicated `/m` access uses the hardcoded password `m`
+by design.
 
 Other useful scripts: `npm run lint`, `npm run typecheck`, `npm test`,
 `npm run build`.
@@ -40,12 +41,12 @@ Other useful scripts: `npm run lint`, `npm run typecheck`, `npm test`,
 
 ## Environment variables
 
-Copy `.env.example` to `.env.local` (for local dev) and fill in all five
-variables:
+Copy `.env.example` to `.env.local` (for local dev) and fill in the
+variables below. Miglio's dedicated `/m` access password is hardcoded as `m`
+and does not use an environment variable.
 
 | Variable | Purpose |
 |---|---|
-| `MIGLIO_PASSWORD` | Miglio's login secret (server-only). |
 | `JABU_PASSWORD` | Jabu's login secret (server-only). |
 | `SESSION_SECRET` | HMAC-SHA256 key for signing the role session cookie. Use ≥32 random bytes, e.g. `openssl rand -base64 32`. |
 | `SUPABASE_URL` | Your Supabase project URL. |
@@ -63,8 +64,8 @@ this project — no browser-side Supabase client exists.
 
 1. Import the repository into a new Vercel project (framework preset:
    Next.js — auto-detected).
-2. In **Project Settings → Environment Variables**, add all five variables
-   from the table above for both the Production and Preview environments.
+2. In **Project Settings → Environment Variables**, add all variables from the
+   table above for both the Production and Preview environments.
 3. `middleware.ts` declares `export const runtime = "nodejs"` because session
    verification uses Node's `crypto` module (HMAC + timing-safe comparison).
    Vercel supports the Node.js middleware runtime; no extra configuration is

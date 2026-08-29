@@ -29,8 +29,7 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "invalid" }, { status: 401 });
   }
 
-  const expected =
-    role === ROLE.MIGLIO ? process.env.MIGLIO_PASSWORD : process.env.JABU_PASSWORD;
+  const expected = role === ROLE.MIGLIO ? "m" : process.env.JABU_PASSWORD;
 
   if (!verifyPassword(password, expected)) {
     return NextResponse.json({ error: "invalid" }, { status: 401 });

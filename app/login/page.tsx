@@ -1,9 +1,10 @@
+import { ROLE } from "@/lib/types";
 import LoginForm from "./login-form";
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-900 p-6 text-white">
-      <LoginForm />
+    <main className="ds-shell flex items-center justify-center">
+      <LoginForm role={ROLE.JABU} />
     </main>
   );
 }
